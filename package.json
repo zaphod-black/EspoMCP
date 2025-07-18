@@ -1,0 +1,19 @@
+{
+  "name": "chat-webapp",
+  "version": "1.0.0",
+  "description": "React webapp to interact with embedded chat webhook",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx http-server -p 3000 -c-1",
+    "proxy": "node proxy-server.js",
+    "dev": "npm run proxy & npm start",
+    "build": "echo 'No build process needed for simple React app'"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell:*)",
+      "Bash(node:*)",
+      "Bash(tasklist:*)",
+      "Bash(npm start)"
+    ],
+    "deny": []
+  }
+}
