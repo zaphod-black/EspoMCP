@@ -4,20 +4,20 @@ A comprehensive Model Context Protocol (MCP) server for seamless integration wit
 
 ## Features
 
-### 🚀 Core Capabilities
+### Core Capabilities
 - **Complete CRUD Operations** - Create, read, update, and delete entities
 - **Multi-Entity Support** - Contacts, Accounts, Opportunities, and more
 - **Advanced Search** - Flexible search with filtering and pagination
 - **Real-time Validation** - Zod-based schema validation for all operations
 - **Comprehensive Logging** - Winston-powered logging with multiple levels
 
-### 🔐 Authentication & Security
+### Authentication & Security
 - **Multiple Auth Methods** - API Key and HMAC authentication support
 - **Secure Configuration** - Environment-based configuration management
 - **Rate Limiting** - Built-in rate limiting for API protection
 - **Error Handling** - Robust error handling with detailed logging
 
-### 🛠 Developer Experience
+### Developer Experience
 - **TypeScript** - Full TypeScript support with strict typing
 - **Docker Support** - Containerized deployment ready
 - **Comprehensive Testing** - Multiple test scripts and validation tools
@@ -83,39 +83,39 @@ LOG_LEVEL=info
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `ESPOCRM_URL` | Your EspoCRM instance URL | ✅ | - |
-| `ESPOCRM_API_KEY` | API key for authentication | ✅ | - |
-| `ESPOCRM_AUTH_METHOD` | Authentication method (`apikey` or `hmac`) | ✅ | `apikey` |
-| `ESPOCRM_SECRET_KEY` | Secret key for HMAC auth | ❌ | - |
-| `SERVER_RATE_LIMIT` | Requests per minute limit | ❌ | `100` |
-| `LOG_LEVEL` | Logging level | ❌ | `info` |
+| `ESPOCRM_URL` | Your EspoCRM instance URL | Yes | - |
+| `ESPOCRM_API_KEY` | API key for authentication | Yes | - |
+| `ESPOCRM_AUTH_METHOD` | Authentication method (`apikey` or `hmac`) | Yes | `apikey` |
+| `ESPOCRM_SECRET_KEY` | Secret key for HMAC auth | No | - |
+| `SERVER_RATE_LIMIT` | Requests per minute limit | No | `100` |
+| `LOG_LEVEL` | Logging level | No | `info` |
 
 ## Available Tools
 
 The MCP server provides 11 comprehensive tools for EspoCRM integration:
 
-### 📞 Contact Management
+### Contact Management
 - **`create_contact`** - Create new contacts with full field support
 - **`search_contacts`** - Search and filter contacts with pagination
 - **`get_contact`** - Retrieve specific contact by ID
 - **`update_contact`** - Update existing contact information
 - **`delete_contact`** - Remove contacts from the system
 
-### 🏢 Account Management  
+### Account Management  
 - **`create_account`** - Create new company/organization accounts
 - **`search_accounts`** - Search and filter accounts
 - **`get_account`** - Retrieve specific account details
 - **`update_account`** - Update account information
 - **`delete_account`** - Remove accounts
 
-### 💼 Opportunity Management
+### Opportunity Management
 - **`create_opportunity`** - Create new sales opportunities
 - **`search_opportunities`** - Search opportunities with advanced filters
 - **`get_opportunity`** - Retrieve opportunity details
 - **`update_opportunity`** - Update opportunity information
 - **`delete_opportunity`** - Remove opportunities
 
-### ⚙️ System Tools
+### System Tools
 - **`health_check`** - Verify server and EspoCRM connectivity
 - **`get_metadata`** - Retrieve entity metadata and field definitions
 
@@ -381,4 +381,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ for the EspoCRM and MCP communities**
+**Built for the EspoCRM and MCP communities**
