@@ -11,6 +11,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:config": "node test-config.js",
+    "test:client": "node test-client.js",
     "lint": "eslint src/**/*.ts",
     "docker:build": "docker build -t espocrm-mcp-server .",
     "docker:run": "docker run -p 3000:3000 --env-file .env espocrm-mcp-server"

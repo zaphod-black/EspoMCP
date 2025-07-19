@@ -1,5 +1,23 @@
 #!/usr/bin/env node
 
+// Load environment variables from .env file
+try {
+  const { readFileSync } = await import('fs');
+  const envContent = readFileSync('.env', 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        process.env[key] = valueParts.join('=');
+      }
+    }
+  });
+  console.log('✓ Loaded .env file');
+} catch (error) {
+  console.log('ℹ No .env file found, using environment variables only');
+}
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { loadConfig, validateConfiguration } from "./config/index.js";

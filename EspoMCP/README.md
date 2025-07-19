@@ -1,54 +1,63 @@
 # EspoCRM MCP Server
 
-A comprehensive Model Context Protocol (MCP) server for EspoCRM integration, enabling AI assistants to securely interact with EspoCRM data through authenticated API calls.
+A comprehensive Model Context Protocol (MCP) server for seamless integration with EspoCRM. This server enables AI assistants to interact with your EspoCRM instance through a standardized interface, providing full CRUD operations for Contacts, Accounts, Opportunities, and system management.
 
 ## Features
 
-### 🔧 Core CRM Operations
-- **Contact Management**: Create, search, update, and manage contacts with full relationship support
-- **Account Management**: Handle companies and organizations with comprehensive business data
-- **Opportunity Management**: Track sales pipeline with stage management and forecasting
-- **System Tools**: Health checks, global search, and recent activity monitoring
+### 🚀 Core Capabilities
+- **Complete CRUD Operations** - Create, read, update, and delete entities
+- **Multi-Entity Support** - Contacts, Accounts, Opportunities, and more
+- **Advanced Search** - Flexible search with filtering and pagination
+- **Real-time Validation** - Zod-based schema validation for all operations
+- **Comprehensive Logging** - Winston-powered logging with multiple levels
 
-### 🚀 Modern Architecture
-- **FastMCP Framework**: Rapid development with simplified syntax and built-in features
-- **TypeScript**: Full type safety and excellent developer experience
-- **Comprehensive Error Handling**: Robust error management with detailed logging
-- **Input Validation**: Zod schema validation for all inputs
-- **Rate Limiting**: Built-in protection against API abuse
+### 🔐 Authentication & Security
+- **Multiple Auth Methods** - API Key and HMAC authentication support
+- **Secure Configuration** - Environment-based configuration management
+- **Rate Limiting** - Built-in rate limiting for API protection
+- **Error Handling** - Robust error handling with detailed logging
 
-### 🔐 Security Features
-- **Multiple Authentication Methods**: API Key and HMAC-SHA256 support
-- **Input Sanitization**: Automatic sanitization of all user inputs
-- **Secure Configuration**: Environment-based configuration management
-- **Audit Logging**: Comprehensive logging of all operations
+### 🛠 Developer Experience
+- **TypeScript** - Full TypeScript support with strict typing
+- **Docker Support** - Containerized deployment ready
+- **Comprehensive Testing** - Multiple test scripts and validation tools
+- **MCP 2024/2025 Compliant** - Latest MCP specification support
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18.0.0 or higher
+- Node.js 18+ 
+- npm or yarn
 - EspoCRM instance with API access
-- API key or HMAC credentials
+- Valid API credentials
 
 ### Installation
 
-1. **Clone and install dependencies:**
+1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/espocrm-mcp-server.git
-cd espocrm-mcp-server
+git clone https://github.com/zaphod-black/EspoMCP.git
+cd EspoMCP
+```
+
+2. **Install dependencies**
+```bash
 npm install
 ```
 
-2. **Configure environment:**
+3. **Configure environment**
 ```bash
 cp .env.example .env
-# Edit .env with your EspoCRM details
+# Edit .env with your EspoCRM credentials
 ```
 
-3. **Build and run:**
+4. **Build the project**
 ```bash
 npm run build
-npm start
+```
+
+5. **Test the connection**
+```bash
+npm run test:config
 ```
 
 ### Environment Configuration
@@ -62,228 +71,314 @@ ESPOCRM_API_KEY=your-api-key-here
 ESPOCRM_AUTH_METHOD=apikey
 
 # Optional: HMAC Authentication
-# ESPOCRM_SECRET_KEY=your-secret-key-for-hmac
+# ESPOCRM_SECRET_KEY=your-secret-key
+# ESPOCRM_AUTH_METHOD=hmac
 
-# Server Configuration
-MCP_TRANSPORT=stdio
-RATE_LIMIT=100
-REQUEST_TIMEOUT=30000
+# Server Configuration (Optional)
+SERVER_RATE_LIMIT=100
 LOG_LEVEL=info
 ```
 
+### Required Configuration
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `ESPOCRM_URL` | Your EspoCRM instance URL | ✅ | - |
+| `ESPOCRM_API_KEY` | API key for authentication | ✅ | - |
+| `ESPOCRM_AUTH_METHOD` | Authentication method (`apikey` or `hmac`) | ✅ | `apikey` |
+| `ESPOCRM_SECRET_KEY` | Secret key for HMAC auth | ❌ | - |
+| `SERVER_RATE_LIMIT` | Requests per minute limit | ❌ | `100` |
+| `LOG_LEVEL` | Logging level | ❌ | `info` |
+
 ## Available Tools
 
-### Contact Management
-- `create_contact` - Create new contacts with validation
-- `search_contacts` - Flexible contact search with multiple criteria
-- `get_contact` - Retrieve detailed contact information
-- `update_contact` - Update existing contact data
-- `delete_contact` - Remove contacts from the system
-- `link_contact_to_account` - Associate contacts with accounts
-- `get_contact_opportunities` - View opportunities for a contact
+The MCP server provides 11 comprehensive tools for EspoCRM integration:
 
-### Account Management
-- `create_account` - Create new companies/organizations
-- `search_accounts` - Search accounts by name, type, industry
-- `get_account` - Get comprehensive account details
-- `update_account` - Update account information
-- `delete_account` - Remove accounts from the system
-- `get_account_contacts` - List all contacts for an account
-- `get_account_opportunities` - View account sales pipeline
-- `get_account_summary` - Complete account overview
+### 📞 Contact Management
+- **`create_contact`** - Create new contacts with full field support
+- **`search_contacts`** - Search and filter contacts with pagination
+- **`get_contact`** - Retrieve specific contact by ID
+- **`update_contact`** - Update existing contact information
+- **`delete_contact`** - Remove contacts from the system
 
-### Opportunity Management
-- `create_opportunity` - Create new sales opportunities
-- `search_opportunities` - Advanced opportunity search and filtering
-- `get_opportunity` - Detailed opportunity information
-- `update_opportunity` - Update opportunity details
-- `update_opportunity_stage` - Move opportunities through sales stages
-- `delete_opportunity` - Remove opportunities
-- `get_pipeline_summary` - Sales pipeline overview and metrics
+### 🏢 Account Management  
+- **`create_account`** - Create new company/organization accounts
+- **`search_accounts`** - Search and filter accounts
+- **`get_account`** - Retrieve specific account details
+- **`update_account`** - Update account information
+- **`delete_account`** - Remove accounts
 
-### System Tools
-- `health_check` - Verify system connectivity and status
-- `get_system_info` - EspoCRM version and user information
-- `search_global` - Search across multiple entity types
-- `get_recent_activity` - View recent system activity
+### 💼 Opportunity Management
+- **`create_opportunity`** - Create new sales opportunities
+- **`search_opportunities`** - Search opportunities with advanced filters
+- **`get_opportunity`** - Retrieve opportunity details
+- **`update_opportunity`** - Update opportunity information
+- **`delete_opportunity`** - Remove opportunities
 
-## Authentication Methods
-
-### API Key Authentication (Recommended)
-1. Create an API user in EspoCRM: Administration > API Users
-2. Select "API Key" as the authentication method
-3. Use the generated API key in your configuration
-
-### HMAC Authentication (Enhanced Security)
-1. Create an API user with "HMAC" authentication
-2. Configure both API key and secret key
-3. Requests are cryptographically signed for enhanced security
+### ⚙️ System Tools
+- **`health_check`** - Verify server and EspoCRM connectivity
+- **`get_metadata`** - Retrieve entity metadata and field definitions
 
 ## Usage Examples
 
 ### Basic Contact Creation
+
 ```javascript
-// Through MCP client
-await mcp.callTool('create_contact', {
+// Using the MCP client
+await client.callTool('create_contact', {
   firstName: 'John',
   lastName: 'Doe',
   emailAddress: 'john.doe@example.com',
-  accountId: 'account-id-here'
+  phoneNumber: '+1-555-123-4567',
+  title: 'Sales Manager'
 });
 ```
 
-### Advanced Opportunity Search
+### Advanced Contact Search
+
 ```javascript
-await mcp.callTool('search_opportunities', {
-  stage: 'Qualification',
-  minAmount: 10000,
-  closeDateAfter: '2024-01-01',
-  limit: 20
+// Search with filters
+await client.callTool('search_contacts', {
+  searchTerm: 'manager',
+  filters: {
+    accountType: 'Customer',
+    industry: 'Technology'
+  },
+  limit: 10,
+  offset: 0
 });
 ```
 
-### Pipeline Analysis
+### Account Management
+
 ```javascript
-await mcp.callTool('get_pipeline_summary', {
-  assignedUserId: 'user-id',
-  includeClosed: false
+// Create a new account
+await client.callTool('create_account', {
+  name: 'Tech Corp Inc',
+  type: 'Customer',
+  industry: 'Technology',
+  website: 'https://techcorp.com',
+  description: 'Leading technology solutions provider'
 });
 ```
+
+## Testing
+
+### Automated Testing
+
+The project includes comprehensive testing tools:
+
+```bash
+# Test configuration and connectivity
+npm run test:config
+
+# Test MCP client functionality
+npm run test:client
+
+# Run unit tests
+npm test
+```
+
+### Manual Testing Scripts
+
+#### Connection Testing
+```bash
+node test-connection.js
+```
+Tests basic connectivity, API endpoints, and authentication.
+
+#### Random Contact Generation
+```bash
+node create-random-contact.js
+```
+Creates a random test contact to verify CRUD operations.
+
+#### Full MCP Server Test
+```bash
+node test-client.js
+```
+Comprehensive test suite covering all MCP tools and functionality.
 
 ## Development
 
 ### Project Structure
+
 ```
-src/
-├── index.ts              # Main server entry point
-├── config/              # Configuration management
-├── espocrm/             # EspoCRM API client
-├── tools/               # MCP tool implementations
-├── utils/               # Shared utilities
-└── types.ts             # Global type definitions
+EspoMCP/
+├── src/                     # Source code
+│   ├── config/             # Configuration management
+│   ├── espocrm/           # EspoCRM API client
+│   ├── tools/             # MCP tool implementations
+│   ├── utils/             # Utility functions
+│   └── index.ts           # Main server entry point
+├── test/                   # Test files
+├── build/                  # Compiled JavaScript
+├── logs/                   # Application logs
+├── docker/                 # Docker configuration
+└── docs/                   # Documentation
 ```
 
-### Building
-```bash
-npm run build
-```
+### Key Components
 
-### Testing
-```bash
-npm test
-npm run test:watch
-```
+#### MCP Server (`src/index.ts`)
+Main server implementation with environment loading and graceful shutdown handling.
 
-### Development Mode
-```bash
-npm run dev
-```
+#### EspoCRM Client (`src/espocrm/client.ts`)
+HTTP client with authentication, error handling, and logging.
+
+#### Tool Registry (`src/tools/index.ts`)
+Central registry for all MCP tools with proper type safety.
+
+#### Configuration (`src/config/index.ts`)
+Environment-based configuration with validation.
+
+### Development Workflow
+
+1. **Make changes** to source files in `src/`
+2. **Build the project** with `npm run build`
+3. **Test changes** with `npm run test:config`
+4. **Run full tests** with `npm run test:client`
+5. **Lint code** with `npm run lint`
 
 ## Docker Deployment
 
-### Build Image
-```bash
-docker build -t espocrm-mcp-server .
-```
+### Build and Run with Docker
 
-### Run Container
 ```bash
-docker run -d \
-  --name espocrm-mcp \
-  --env-file .env \
-  -p 3000:3000 \
-  espocrm-mcp-server
+# Build the Docker image
+npm run docker:build
+
+# Run with environment file
+npm run docker:run
 ```
 
 ### Docker Compose
+
 ```yaml
 version: '3.8'
 services:
   espocrm-mcp:
     build: .
-    env_file: .env
-    ports:
-      - "3000:3000"
-    restart: unless-stopped
+    environment:
+      - ESPOCRM_URL=${ESPOCRM_URL}
+      - ESPOCRM_API_KEY=${ESPOCRM_API_KEY}
+      - ESPOCRM_AUTH_METHOD=apikey
+    volumes:
+      - ./logs:/app/logs
 ```
-
-## Configuration Reference
-
-### Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ESPOCRM_URL` | Yes | - | EspoCRM instance URL |
-| `ESPOCRM_API_KEY` | Yes | - | API key for authentication |
-| `ESPOCRM_AUTH_METHOD` | No | `apikey` | Authentication method (`apikey` or `hmac`) |
-| `ESPOCRM_SECRET_KEY` | No | - | Secret key for HMAC authentication |
-| `MCP_TRANSPORT` | No | `stdio` | Transport type (`stdio` or `http`) |
-| `RATE_LIMIT` | No | `100` | Requests per minute per user |
-| `REQUEST_TIMEOUT` | No | `30000` | Request timeout in milliseconds |
-| `LOG_LEVEL` | No | `info` | Logging level (`error`, `warn`, `info`, `debug`) |
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Connection Failed**
-- Verify ESPOCRM_URL is correct and accessible
-- Check API key permissions in EspoCRM
-- Ensure API user is active and not disabled
-
-**Authentication Errors**
-- Verify API key is correct
-- Check API user permissions for required entities
-- For HMAC, ensure secret key matches EspoCRM configuration
-
-**Rate Limiting**
-- Adjust RATE_LIMIT environment variable
-- Implement backoff strategies in client code
-- Consider using multiple API users for higher throughput
-
-### Health Check
-Use the built-in health check to verify connectivity:
+#### Connection Failures
 ```bash
-# Test the health_check tool through your MCP client
-health_check
+# Test basic connectivity
+node test-connection.js
+
+# Check environment variables
+npm run test:config
 ```
 
-### Logging
-Logs are output to console by default. In production, logs are also written to:
-- `logs/error.log` - Error messages only
-- `logs/combined.log` - All log messages
+#### Authentication Issues
+- Verify API key is correct and active
+- Check user permissions in EspoCRM
+- Ensure API access is enabled for the user
+
+#### Build Errors
+```bash
+# Clean and rebuild
+rm -rf build/
+npm run build
+```
+
+### Debug Mode
+
+Enable debug logging:
+```env
+LOG_LEVEL=debug
+```
+
+## API Reference
+
+### Tool Schemas
+
+All tools use Zod schemas for validation. Key schemas include:
+
+#### Contact Schema
+```typescript
+{
+  firstName: string,
+  lastName: string,
+  emailAddress?: string,
+  phoneNumber?: string,
+  title?: string,
+  description?: string
+}
+```
+
+#### Account Schema
+```typescript
+{
+  name: string,
+  type?: string,
+  industry?: string,
+  website?: string,
+  description?: string
+}
+```
+
+#### Search Parameters
+```typescript
+{
+  searchTerm?: string,
+  filters?: Record<string, any>,
+  limit?: number,
+  offset?: number
+}
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ### Development Guidelines
+
 - Follow TypeScript best practices
-- Add comprehensive error handling
-- Include input validation for all tools
-- Write tests for new functionality
-- Update documentation for API changes
+- Add tests for new functionality
+- Update documentation as needed
+- Ensure all tests pass before submitting
+
+## Security
+
+- **Never commit** API keys or secrets to version control
+- Use environment variables for all sensitive configuration
+- Regularly rotate API keys
+- Monitor access logs for suspicious activity
 
 ## License
 
-MIT License - see LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
-- 📖 [EspoCRM API Documentation](https://docs.espocrm.com/development/api/)
-- 🔧 [MCP Protocol Specification](https://modelcontextprotocol.io/docs/)
-- 🐛 [Report Issues](https://github.com/your-username/espocrm-mcp-server/issues)
+- **Issues**: [GitHub Issues](https://github.com/zaphod-black/EspoMCP/issues)
+- **Documentation**: Check the `docs/` directory
+- **EspoCRM API**: [Official EspoCRM API Documentation](https://docs.espocrm.com/development/api/)
 
 ## Changelog
 
-### v1.0.0
-- Initial release
+### Version 1.0.0
+- Initial release with full MCP 2024/2025 support
 - Complete CRUD operations for Contacts, Accounts, Opportunities
+- Docker support and comprehensive testing
 - Multiple authentication methods
-- Comprehensive error handling and logging
-- Docker support
-- Full TypeScript implementation
+- Production-ready logging and error handling
+
+---
+
+**Built with ❤️ for the EspoCRM and MCP communities**
