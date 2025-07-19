@@ -1,0 +1,52 @@
+{
+  "name": "espocrm-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for EspoCRM integration with comprehensive CRM operations",
+  "main": "build/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && chmod +x build/index.js",
+    "dev": "tsx src/index.ts",
+    "start": "node build/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:config": "node test-config.js",
+    "lint": "eslint src/**/*.ts",
+    "docker:build": "docker build -t espocrm-mcp-server .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env espocrm-mcp-server"
+  },
+  "bin": {
+    "espocrm-mcp-server": "./build/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "espocrm",
+    "crm",
+    "ai",
+    "llm",
+    "anthropic"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.22.4",
+    "axios": "^1.6.2",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "tsx": "^4.6.2",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "ts-jest": "^29.1.1",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
