@@ -12,7 +12,8 @@
       "Bash(chmod:*)",
       "Bash(node:*)",
       "Bash(npm run test:config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:api.github.com)"
     ],
     "deny": []
   }
