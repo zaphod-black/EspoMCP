@@ -2,7 +2,7 @@
 
 A comprehensive Model Context Protocol (MCP) server for seamless integration with EspoCRM. This server enables AI assistants to interact with your EspoCRM instance through a standardized interface, providing complete CRUD operations for Contacts, Accounts, Opportunities, Meetings, Users, Tasks, Leads, and advanced system management capabilities.
 
-**🤖 NEW: AI Chatbot Integration** - Now includes a complete chatbot interface that embeds directly into your EspoCRM, providing natural language access to all 47 MCP tools!
+** NEW: AI Chatbot Integration** - Now includes a complete chatbot interface that embeds directly into your EspoCRM, providing natural language access to all 47 MCP tools!
 
 ## Features
 
@@ -29,7 +29,7 @@ A comprehensive Model Context Protocol (MCP) server for seamless integration wit
 - **Date/Time Filtering** - Advanced date range search capabilities
 - **Google Calendar Sync Compatibility** - Designed for calendar synchronization workflows
 
-### AI Chatbot Integration 🤖
+### AI Chatbot Integration 
 - **Floating Chat Widget** - Beautiful, non-intrusive chat bubble interface
 - **Natural Language Processing** - Chat in plain English to perform CRM operations
 - **Real-time Communication** - WebSocket-powered instant responses
@@ -80,7 +80,7 @@ npm run build
 npm run test:config
 ```
 
-## 🤖 AI Chatbot Quick Start
+##  AI Chatbot Quick Start
 
 ### Deploy Chatbot Interface
 
