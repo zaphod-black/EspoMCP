@@ -2,6 +2,8 @@
 
 A comprehensive Model Context Protocol (MCP) server for seamless integration with EspoCRM. This server enables AI assistants to interact with your EspoCRM instance through a standardized interface, providing complete CRUD operations for Contacts, Accounts, Opportunities, Meetings, Users, Tasks, Leads, and advanced system management capabilities.
 
+**🤖 NEW: AI Chatbot Integration** - Now includes a complete chatbot interface that embeds directly into your EspoCRM, providing natural language access to all 47 MCP tools!
+
 ## Features
 
 ### Core Capabilities
@@ -26,6 +28,14 @@ A comprehensive Model Context Protocol (MCP) server for seamless integration wit
 - **Attendee Management** - Link contacts and users to meetings
 - **Date/Time Filtering** - Advanced date range search capabilities
 - **Google Calendar Sync Compatibility** - Designed for calendar synchronization workflows
+
+### AI Chatbot Integration 🤖
+- **Floating Chat Widget** - Beautiful, non-intrusive chat bubble interface
+- **Natural Language Processing** - Chat in plain English to perform CRM operations
+- **Real-time Communication** - WebSocket-powered instant responses
+- **47 MCP Tools Access** - Complete CRM functionality via chat
+- **EspoCRM Embedding** - Integrates directly into your EspoCRM interface
+- **Mobile Responsive** - Works seamlessly on all devices
 
 ### Developer Experience
 - **TypeScript** - Full TypeScript support with strict typing
@@ -70,6 +80,45 @@ npm run build
 npm run test:config
 ```
 
+## 🤖 AI Chatbot Quick Start
+
+### Deploy Chatbot Interface
+
+1. **Navigate to chatbot directory**
+```bash
+cd chatbot-bridge
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Configure environment**
+```bash
+cp .env.example .env
+# Edit .env with your EspoCRM settings
+```
+
+4. **Start chatbot server**
+```bash
+npm start
+# Or with Docker: docker-compose up -d
+```
+
+5. **Integrate with EspoCRM**
+Add to your EspoCRM footer template:
+```html
+<script>
+  window.ESPOCRM_CHAT_SERVER = 'http://your-server:3001';
+</script>
+<script src="http://your-server:3001/socket.io/socket.io.js"></script>
+<script src="http://your-server:3001/api/widget.js"></script>
+```
+
+6. **Try the Demo**
+Visit `http://localhost:3001/widget` to see the chatbot in action!
+
 ### Environment Configuration
 
 Create a `.env` file with your EspoCRM configuration:
@@ -106,7 +155,7 @@ LOG_LEVEL=info
 
 ## Available Tools
 
-The MCP server provides 39 comprehensive tools for EspoCRM integration:
+The MCP server provides 47 comprehensive tools for EspoCRM integration:
 
 ### Contact Management
 - **`create_contact`** - Create new contacts with full field support
@@ -160,6 +209,20 @@ The MCP server provides 39 comprehensive tools for EspoCRM integration:
 - **`update_entity`** - Update any entity record by ID with flexible data
 - **`delete_entity`** - Delete any entity record by ID
 - **`get_entity`** - Get specific entity records with optional field selection
+
+### Relationship Management
+- **`link_entities`** - Create relationships between any two entity records
+- **`unlink_entities`** - Remove relationships between entity records
+- **`get_entity_relationships`** - Get all related records for an entity with relationship details
+
+### Communication Tools
+- **`create_call`** - Create call records with status, direction, and duration tracking
+- **`search_calls`** - Search calls by status, direction, contact, and date ranges
+- **`create_case`** - Create support cases with priority, type, and account linking
+- **`search_cases`** - Search cases by status, priority, type, and assignment
+- **`add_note`** - Add notes to any entity record for documentation and follow-up
+- **`search_notes`** - Search notes by parent entity, author, and date ranges
+- **`create_document`** - Create document records with file attachments and metadata
 
 ### System Tools
 - **`health_check`** - Verify server and EspoCRM connectivity across all entities
@@ -337,6 +400,103 @@ await client.callTool('get_entity', {
   entityId: 'order456',
   select: ['orderNumber', 'customerName', 'items', 'totalAmount']
 });
+```
+
+### Relationship Management
+
+```javascript
+// Link entities together (e.g., link contact to account)
+await client.callTool('link_entities', {
+  entityType: 'Contact',
+  entityId: 'contact123',
+  relatedEntityType: 'Account',
+  relatedEntityId: 'account456',
+  relationshipName: 'accounts'
+});
+
+// Get all relationships for an entity
+await client.callTool('get_entity_relationships', {
+  entityType: 'Contact',
+  entityId: 'contact123',
+  relationshipName: 'opportunities'
+});
+
+// Remove relationship between entities
+await client.callTool('unlink_entities', {
+  entityType: 'Contact',
+  entityId: 'contact123',
+  relatedEntityType: 'Account',
+  relatedEntityId: 'account456',
+  relationshipName: 'accounts'
+});
+```
+
+### Communication Tools
+
+```javascript
+// Create a call record
+await client.callTool('create_call', {
+  name: 'Follow-up call with John Smith',
+  status: 'Held',
+  direction: 'Outbound',
+  duration: 1800, // 30 minutes in seconds
+  parentType: 'Contact',
+  parentId: 'contact123',
+  description: 'Discussed pricing options and next steps'
+});
+
+// Search calls by criteria
+await client.callTool('search_calls', {
+  status: 'Held',
+  direction: 'Outbound',
+  dateFrom: '2025-07-01',
+  dateTo: '2025-07-31',
+  limit: 20
+});
+
+// Create a support case
+await client.callTool('create_case', {
+  name: 'Login Issues',
+  status: 'New',
+  priority: 'High',
+  type: 'Technical',
+  accountId: 'account123',
+  description: 'Customer unable to login to portal'
+});
+
+// Add a note to any entity
+await client.callTool('add_note', {
+  parentType: 'Lead',
+  parentId: 'lead123',
+  post: 'Customer expressed interest in enterprise features. Schedule demo next week.',
+  data: {
+    isInternal: false
+  }
+});
+
+// Search notes by parent entity
+await client.callTool('search_notes', {
+  parentType: 'Lead',
+  parentId: 'lead123',
+  createdFrom: '2025-07-01',
+  limit: 10
+});
+```
+
+### AI Chatbot Usage
+
+The embedded chatbot understands natural language and can perform any CRM operation:
+
+```javascript
+// Natural language examples users can type:
+"Create a contact named Sarah Johnson with email sarah@techcorp.com"
+"Find all accounts in the software industry"
+"Show me opportunities over $50,000"
+"Create a task to follow up with lead John Smith"
+"Schedule a meeting for tomorrow at 2 PM"
+"What's the system health status?"
+"Link contact ID 123 to account TechCorp"
+"Add a note to case #456 saying 'Customer satisfied with resolution'"
 ```
 
 ### Meeting Management
@@ -734,6 +894,58 @@ All tools use Zod schemas for validation. Key schemas include:
 }
 ```
 
+#### Call Schema
+```typescript
+{
+  name: string,
+  status?: 'Planned' | 'Held' | 'Not Held',
+  direction?: 'Inbound' | 'Outbound',
+  duration?: number,        // Duration in seconds
+  parentType?: string,      // Related entity type
+  parentId?: string,        // Related entity ID
+  assignedUserId?: string,
+  description?: string
+}
+```
+
+#### Case Schema
+```typescript
+{
+  name: string,
+  status?: 'New' | 'Assigned' | 'Pending' | 'Closed' | 'Rejected' | 'Duplicate',
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent',
+  type?: string,            // Case type
+  accountId?: string,       // Related account
+  contactId?: string,       // Related contact
+  assignedUserId?: string,
+  description?: string
+}
+```
+
+#### Note Schema
+```typescript
+{
+  parentType: string,       // Entity type the note is attached to
+  parentId: string,         // Entity ID the note is attached to
+  post: string,             // Note content
+  data?: {                  // Additional note data
+    isInternal?: boolean,   // Internal note flag
+    [key: string]: any
+  }
+}
+```
+
+#### Relationship Schema
+```typescript
+{
+  entityType: string,       // Source entity type
+  entityId: string,         // Source entity ID
+  relatedEntityType: string, // Target entity type
+  relatedEntityId: string,  // Target entity ID
+  relationshipName: string  // Relationship field name
+}
+```
+
 #### Team Management Operations
 ```typescript
 // Add user to team
@@ -871,6 +1083,29 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **MCP Specification**: [Model Context Protocol Documentation](https://spec.modelcontextprotocol.io/)
 
 ## Changelog
+
+### Version 2.0.0 - AI Chatbot Integration 🤖
+- **Complete Chatbot Interface**: Floating chat bubble that embeds in EspoCRM
+- **Natural Language Processing**: Chat in plain English to perform CRM operations
+- **WebSocket Communication**: Real-time bidirectional communication
+- **47 MCP Tools Access**: Full CRM functionality via conversational interface
+- **Security & Rate Limiting**: Production-ready security with input validation
+- **Docker Deployment**: Containerized chatbot server alongside MCP server
+- **Mobile Responsive**: Beautiful interface that works on all devices
+- **EspoCRM Integration**: Simple 3-line integration with existing EspoCRM instances
+- **AI-Powered**: Optional OpenAI integration for advanced natural language understanding
+- **Production Testing**: Comprehensive test suite and demo interface
+
+### Version 1.5.0 - Phase 3 Complete Communication & Relationship Management
+- **Relationship Management**: 3 new tools for linking/unlinking entities and managing relationships
+- **Communication Tools**: 7 new tools for calls, cases, notes, and document management
+- **Entity Relationship Operations**: Link/unlink any entities, get relationship details
+- **Call Management**: Create and search call records with duration and direction tracking
+- **Case Management**: Create and search support cases with priority and type categorization
+- **Note System**: Add notes to any entity with internal/external visibility control
+- **Document Management**: Create document records with file attachment support
+- **Advanced Formatting**: Added specialized formatting for calls, cases, and notes
+- **Tool Count**: Expanded from 39 to 47 comprehensive tools (+8 new tools)
 
 ### Version 1.4.0 - Phase 2 Complete Enterprise Solution
 - **Team & Role Management**: 7 new tools for complete user/team/role administration

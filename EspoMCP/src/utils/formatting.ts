@@ -327,6 +327,54 @@ export function formatDateTime(dateTimeString: string): string {
   }
 }
 
+export function formatCallResults(calls: any[]): string {
+  if (!calls || calls.length === 0) {
+    return "No calls found.";
+  }
+  
+  const formatted = calls.map(call => {
+    const direction = call.direction ? ` (${call.direction})` : '';
+    const contact = call.parentName ? ` | Contact: ${call.parentName}` : '';
+    const duration = call.duration ? ` | Duration: ${call.duration}s` : '';
+    const date = call.dateStart ? ` | ${formatDateTime(call.dateStart)}` : '';
+    return `${call.name || 'Call'}${direction} (${call.status})${contact}${duration}${date}`;
+  }).join('\n');
+  
+  return `Found ${calls.length} call${calls.length === 1 ? '' : 's'}:\n${formatted}`;
+}
+
+export function formatCaseResults(cases: any[]): string {
+  if (!cases || cases.length === 0) {
+    return "No cases found.";
+  }
+  
+  const formatted = cases.map(caseRecord => {
+    const priority = caseRecord.priority && caseRecord.priority !== 'Medium' ? ` [${caseRecord.priority}]` : '';
+    const type = caseRecord.type ? ` | Type: ${caseRecord.type}` : '';
+    const account = caseRecord.accountName ? ` | Account: ${caseRecord.accountName}` : '';
+    const assignee = caseRecord.assignedUserName ? ` | Assigned: ${caseRecord.assignedUserName}` : '';
+    return `${caseRecord.name || caseRecord.subject} (${caseRecord.status})${priority}${type}${account}${assignee}`;
+  }).join('\n');
+  
+  return `Found ${cases.length} case${cases.length === 1 ? '' : 's'}:\n${formatted}`;
+}
+
+export function formatNoteResults(notes: any[]): string {
+  if (!notes || notes.length === 0) {
+    return "No notes found.";
+  }
+  
+  const formatted = notes.map(note => {
+    const parent = note.parentName ? ` | Related: ${note.parentName} (${note.parentType})` : '';
+    const author = note.createdByName ? ` | By: ${note.createdByName}` : '';
+    const date = note.createdAt ? ` | ${formatDateTime(note.createdAt)}` : '';
+    const preview = note.post ? ` | "${note.post.substring(0, 50)}${note.post.length > 50 ? '...' : ''}"` : '';
+    return `${note.name || 'Note'}${parent}${author}${date}${preview}`;
+  }).join('\n');
+  
+  return `Found ${notes.length} note${notes.length === 1 ? '' : 's'}:\n${formatted}`;
+}
+
 export function formatLargeResultSet<T>(items: T[], formatter: (items: T[]) => string, maxItems = 20): string {
   if (items.length <= maxItems) {
     return formatter(items);

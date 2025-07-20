@@ -1,0 +1,35 @@
+{
+  "name": "espocrm-chatbot-bridge",
+  "version": "1.0.0",
+  "description": "Bridge server connecting EspoCRM chat interface to MCP tools",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "echo 'No build step needed for this project'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.1",
+    "ws": "^8.14.2",
+    "uuid": "^9.0.1",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "espocrm",
+    "chatbot",
+    "mcp",
+    "ai",
+    "bridge"
+  ],
+  "author": "EspoCRM MCP Team",
+  "license": "MIT"
+}

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  espocrm-chatbot:
+    build: .
+    container_name: espocrm-chatbot-bridge
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - CHATBOT_PORT=3001
+      - LOG_LEVEL=info
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - ./logs:/app/logs
+      - ../build:/app/mcp-server:ro  # Mount the MCP server build
+    networks:
+      - espocrm-network
+    depends_on:
+      - espocrm-mcp
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  espocrm-mcp:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: espocrm-mcp-server
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - ESPOCRM_URL=${ESPOCRM_URL}
+      - ESPOCRM_API_KEY=${ESPOCRM_API_KEY}
+      - ESPOCRM_AUTH_METHOD=${ESPOCRM_AUTH_METHOD:-apikey}
+      - MCP_TRANSPORT=stdio
+      - LOG_LEVEL=info
+    volumes:
+      - ../logs:/app/logs
+    networks:
+      - espocrm-network
+
+networks:
+  espocrm-network:
+    driver: bridge
+    external: false
+
+volumes:
+  chatbot_logs:
+  mcp_logs:

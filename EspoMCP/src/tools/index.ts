@@ -22,6 +22,9 @@ import {
   formatTeamResults,
   formatGenericEntityResults,
   formatGenericEntityDetails,
+  formatCallResults,
+  formatCaseResults,
+  formatNoteResults,
   formatLargeResultSet 
 } from "../utils/formatting.js";
 import { NameSchema, EmailSchema, PhoneSchema, IdSchema, DateSchema, UrlSchema, sanitizeInput, validateAmount, validateProbability } from "../utils/validation.js";
@@ -604,6 +607,184 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
                 select: { type: "array", items: { type: "string" }, description: "Specific fields to retrieve" },
               },
               required: ["entityType", "entityId"],
+            },
+          },
+          // Relationship Management tools
+          {
+            name: "link_entities",
+            description: "Create relationships between any two entities",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The main entity type (e.g., 'Account', 'Contact')" },
+                entityId: { type: "string", description: "ID of the main entity" },
+                relationshipName: { type: "string", description: "Name of the relationship (e.g., 'contacts', 'opportunities')" },
+                relatedEntityIds: { type: "array", items: { type: "string" }, description: "Array of related entity IDs to link" },
+              },
+              required: ["entityType", "entityId", "relationshipName", "relatedEntityIds"],
+            },
+          },
+          {
+            name: "unlink_entities",
+            description: "Remove relationships between entities",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The main entity type (e.g., 'Account', 'Contact')" },
+                entityId: { type: "string", description: "ID of the main entity" },
+                relationshipName: { type: "string", description: "Name of the relationship (e.g., 'contacts', 'opportunities')" },
+                relatedEntityIds: { type: "array", items: { type: "string" }, description: "Array of related entity IDs to unlink" },
+              },
+              required: ["entityType", "entityId", "relationshipName", "relatedEntityIds"],
+            },
+          },
+          {
+            name: "get_entity_relationships",
+            description: "Get all related entities for a specific entity and relationship",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The main entity type (e.g., 'Account', 'Contact')" },
+                entityId: { type: "string", description: "ID of the main entity" },
+                relationshipName: { type: "string", description: "Name of the relationship (e.g., 'contacts', 'opportunities')" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 50 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+                select: { type: "array", items: { type: "string" }, description: "Fields to include in results" },
+              },
+              required: ["entityType", "entityId", "relationshipName"],
+            },
+          },
+          // Communication tools
+          {
+            name: "create_call",
+            description: "Log a phone call with participants and details",
+            inputSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Call name/subject" },
+                status: { type: "string", enum: ["Planned", "Held", "Not Held"], description: "Call status", default: "Held" },
+                direction: { type: "string", enum: ["Outbound", "Inbound"], description: "Call direction" },
+                dateStart: { type: "string", description: "Call start time in ISO format (YYYY-MM-DDTHH:mm:ss)" },
+                dateEnd: { type: "string", description: "Call end time in ISO format (YYYY-MM-DDTHH:mm:ss)" },
+                description: { type: "string", description: "Call notes and details" },
+                phoneNumber: { type: "string", description: "Phone number called/received from" },
+                assignedUserId: { type: "string", description: "ID of the user who made/received the call" },
+                parentType: { type: "string", description: "Related entity type (Account, Contact, Lead, etc.)" },
+                parentId: { type: "string", description: "ID of related entity" },
+                contactsIds: { type: "array", items: { type: "string" }, description: "Array of contact IDs involved in the call" },
+              },
+              required: ["name", "direction"],
+            },
+          },
+          {
+            name: "search_calls",
+            description: "Search for calls using flexible criteria",
+            inputSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Search by call name/subject" },
+                status: { type: "string", enum: ["Planned", "Held", "Not Held"], description: "Filter by call status" },
+                direction: { type: "string", enum: ["Outbound", "Inbound"], description: "Filter by call direction" },
+                dateFrom: { type: "string", description: "Filter by call date from (YYYY-MM-DD format)" },
+                dateTo: { type: "string", description: "Filter by call date to (YYYY-MM-DD format)" },
+                assignedUserId: { type: "string", description: "Filter by assigned user ID" },
+                assignedUserName: { type: "string", description: "Filter by assigned user name" },
+                phoneNumber: { type: "string", description: "Filter by phone number" },
+                parentType: { type: "string", description: "Filter by parent entity type" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 20 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+              },
+              required: [],
+            },
+          },
+          {
+            name: "create_case",
+            description: "Create a support case/ticket with details",
+            inputSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Case subject/title" },
+                status: { type: "string", enum: ["New", "Assigned", "Pending", "Closed", "Rejected", "Duplicate"], description: "Case status", default: "New" },
+                priority: { type: "string", enum: ["Low", "Normal", "High", "Urgent"], description: "Case priority", default: "Normal" },
+                type: { type: "string", enum: ["Question", "Incident", "Problem", "Feature Request"], description: "Case type" },
+                description: { type: "string", description: "Detailed case description" },
+                accountId: { type: "string", description: "ID of the related account" },
+                contactId: { type: "string", description: "ID of the related contact" },
+                leadId: { type: "string", description: "ID of the related lead" },
+                assignedUserId: { type: "string", description: "ID of the user assigned to handle the case" },
+              },
+              required: ["name"],
+            },
+          },
+          {
+            name: "search_cases",
+            description: "Search for support cases using flexible criteria",
+            inputSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Search by case name/subject" },
+                status: { type: "string", enum: ["New", "Assigned", "Pending", "Closed", "Rejected", "Duplicate"], description: "Filter by case status" },
+                priority: { type: "string", enum: ["Low", "Normal", "High", "Urgent"], description: "Filter by case priority" },
+                type: { type: "string", enum: ["Question", "Incident", "Problem", "Feature Request"], description: "Filter by case type" },
+                assignedUserId: { type: "string", description: "Filter by assigned user ID" },
+                assignedUserName: { type: "string", description: "Filter by assigned user name" },
+                accountName: { type: "string", description: "Filter by account name" },
+                contactName: { type: "string", description: "Filter by contact name" },
+                createdFrom: { type: "string", description: "Filter by creation date from (YYYY-MM-DD format)" },
+                createdTo: { type: "string", description: "Filter by creation date to (YYYY-MM-DD format)" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 20 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+              },
+              required: [],
+            },
+          },
+          {
+            name: "update_case",
+            description: "Update an existing support case",
+            inputSchema: {
+              type: "object",
+              properties: {
+                caseId: { type: "string", description: "The unique ID of the case to update" },
+                name: { type: "string", description: "Case subject/title" },
+                status: { type: "string", enum: ["New", "Assigned", "Pending", "Closed", "Rejected", "Duplicate"], description: "Case status" },
+                priority: { type: "string", enum: ["Low", "Normal", "High", "Urgent"], description: "Case priority" },
+                type: { type: "string", enum: ["Question", "Incident", "Problem", "Feature Request"], description: "Case type" },
+                description: { type: "string", description: "Detailed case description" },
+                assignedUserId: { type: "string", description: "ID of the user assigned to handle the case" },
+              },
+              required: ["caseId"],
+            },
+          },
+          {
+            name: "add_note",
+            description: "Add a note/comment to any entity",
+            inputSchema: {
+              type: "object",
+              properties: {
+                post: { type: "string", description: "The note content/text" },
+                parentType: { type: "string", description: "Entity type to attach note to (Account, Contact, Lead, etc.)" },
+                parentId: { type: "string", description: "ID of the entity to attach the note to" },
+                type: { type: "string", enum: ["Post"], description: "Note type", default: "Post" },
+              },
+              required: ["post", "parentType", "parentId"],
+            },
+          },
+          {
+            name: "search_notes",
+            description: "Search for notes/comments across entities",
+            inputSchema: {
+              type: "object",
+              properties: {
+                searchTerm: { type: "string", description: "Search in note content" },
+                parentType: { type: "string", description: "Filter by parent entity type" },
+                parentId: { type: "string", description: "Filter by specific parent entity ID" },
+                createdById: { type: "string", description: "Filter by note creator user ID" },
+                createdFrom: { type: "string", description: "Filter by creation date from (YYYY-MM-DD format)" },
+                createdTo: { type: "string", description: "Filter by creation date to (YYYY-MM-DD format)" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 20 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+              },
+              required: [],
             },
           },
           // System tools
@@ -2117,6 +2298,541 @@ Current time: ${new Date().toISOString()}`;
                 {
                   type: "text",
                   text: formatGenericEntityDetails(entity, validatedArgs.entityType)
+                }
+              ]
+            };
+          }
+
+          case "link_entities": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              entityId: IdSchema,
+              relationshipName: z.string().min(1),
+              relatedEntityIds: z.array(IdSchema).min(1),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            await client.linkRecords(
+              validatedArgs.entityType, 
+              validatedArgs.entityId, 
+              validatedArgs.relationshipName, 
+              validatedArgs.relatedEntityIds
+            );
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully linked ${validatedArgs.relatedEntityIds.length} entities to ${validatedArgs.entityType} ${validatedArgs.entityId} via relationship '${validatedArgs.relationshipName}'`
+                }
+              ]
+            };
+          }
+
+          case "unlink_entities": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              entityId: IdSchema,
+              relationshipName: z.string().min(1),
+              relatedEntityIds: z.array(IdSchema).min(1),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            await client.unlinkRecords(
+              validatedArgs.entityType, 
+              validatedArgs.entityId, 
+              validatedArgs.relationshipName, 
+              validatedArgs.relatedEntityIds
+            );
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully unlinked ${validatedArgs.relatedEntityIds.length} entities from ${validatedArgs.entityType} ${validatedArgs.entityId} via relationship '${validatedArgs.relationshipName}'`
+                }
+              ]
+            };
+          }
+
+          case "get_entity_relationships": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              entityId: IdSchema,
+              relationshipName: z.string().min(1),
+              limit: z.number().min(1).max(200).default(50),
+              offset: z.number().min(0).default(0),
+              select: z.array(z.string()).optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            const related = await client.getRelated(
+              validatedArgs.entityType,
+              validatedArgs.entityId,
+              validatedArgs.relationshipName,
+              {
+                maxSize: validatedArgs.limit,
+                offset: validatedArgs.offset,
+                select: validatedArgs.select
+              }
+            );
+            
+            if (!related?.list?.length) {
+              return {
+                content: [
+                  { 
+                    type: "text", 
+                    text: `No related entities found for ${validatedArgs.entityType} ${validatedArgs.entityId} via relationship '${validatedArgs.relationshipName}'` 
+                  }
+                ]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatGenericEntityResults(related.list, `Related ${validatedArgs.relationshipName}`)
+                }
+              ]
+            };
+          }
+
+          case "create_call": {
+            const schema = z.object({
+              name: z.string().min(1).max(255),
+              status: z.enum(['Planned', 'Held', 'Not Held']).default('Held'),
+              direction: z.enum(['Outbound', 'Inbound']),
+              dateStart: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, "Invalid ISO datetime format").optional(),
+              dateEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, "Invalid ISO datetime format").optional(),
+              description: z.string().max(1000).optional(),
+              phoneNumber: PhoneSchema.optional(),
+              assignedUserId: IdSchema.optional(),
+              parentType: z.string().optional(),
+              parentId: IdSchema.optional(),
+              contactsIds: z.array(IdSchema).optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const sanitizedArgs = sanitizeInput(validatedArgs);
+            const call = await client.post<Call>('Call', sanitizedArgs);
+            
+            // Link contacts if provided
+            if (validatedArgs.contactsIds?.length) {
+              await client.linkRecords('Call', call.id!, 'contacts', validatedArgs.contactsIds);
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully created ${validatedArgs.direction.toLowerCase()} call "${validatedArgs.name}" (${validatedArgs.status}) with ID: ${call.id}`
+                }
+              ]
+            };
+          }
+
+          case "search_calls": {
+            const schema = z.object({
+              name: z.string().optional(),
+              status: z.enum(['Planned', 'Held', 'Not Held']).optional(),
+              direction: z.enum(['Outbound', 'Inbound']).optional(),
+              dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              assignedUserId: IdSchema.optional(),
+              assignedUserName: z.string().optional(),
+              phoneNumber: z.string().optional(),
+              parentType: z.string().optional(),
+              limit: z.number().min(1).max(200).default(20),
+              offset: z.number().min(0).default(0),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const where = [];
+            
+            if (validatedArgs.name) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'name',
+                value: validatedArgs.name
+              });
+            }
+            
+            if (validatedArgs.status) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'status',
+                value: validatedArgs.status
+              });
+            }
+            
+            if (validatedArgs.direction) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'direction',
+                value: validatedArgs.direction
+              });
+            }
+            
+            if (validatedArgs.assignedUserId) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'assignedUserId',
+                value: validatedArgs.assignedUserId
+              });
+            }
+            
+            if (validatedArgs.assignedUserName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'assignedUserName',
+                value: validatedArgs.assignedUserName
+              });
+            }
+            
+            if (validatedArgs.phoneNumber) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'phoneNumber',
+                value: validatedArgs.phoneNumber
+              });
+            }
+            
+            if (validatedArgs.parentType) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'parentType',
+                value: validatedArgs.parentType
+              });
+            }
+            
+            if (validatedArgs.dateFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'dateStart',
+                value: validatedArgs.dateFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.dateTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'dateStart',
+                value: validatedArgs.dateTo + ' 23:59:59'
+              });
+            }
+            
+            const response = await client.search<Call>('Call', {
+              where: where.length > 0 ? where : undefined,
+              select: ['id', 'name', 'status', 'direction', 'dateStart', 'phoneNumber', 'assignedUserName', 'parentType', 'parentName'],
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset,
+              orderBy: 'dateStart',
+              order: 'desc'
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: "No calls found matching the criteria." }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatCallResults(response.list)
+                }
+              ]
+            };
+          }
+
+          case "create_case": {
+            const schema = z.object({
+              name: z.string().min(1).max(255),
+              status: z.enum(['New', 'Assigned', 'Pending', 'Closed', 'Rejected', 'Duplicate']).default('New'),
+              priority: z.enum(['Low', 'Normal', 'High', 'Urgent']).default('Normal'),
+              type: z.enum(['Question', 'Incident', 'Problem', 'Feature Request']).optional(),
+              description: z.string().max(1000).optional(),
+              accountId: IdSchema.optional(),
+              contactId: IdSchema.optional(),
+              leadId: IdSchema.optional(),
+              assignedUserId: IdSchema.optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const sanitizedArgs = sanitizeInput(validatedArgs);
+            const supportCase = await client.post<Case>('Case', sanitizedArgs);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully created case "${validatedArgs.name}" (${validatedArgs.status}, ${validatedArgs.priority} priority) with ID: ${supportCase.id}`
+                }
+              ]
+            };
+          }
+
+          case "search_cases": {
+            const schema = z.object({
+              name: z.string().optional(),
+              status: z.enum(['New', 'Assigned', 'Pending', 'Closed', 'Rejected', 'Duplicate']).optional(),
+              priority: z.enum(['Low', 'Normal', 'High', 'Urgent']).optional(),
+              type: z.enum(['Question', 'Incident', 'Problem', 'Feature Request']).optional(),
+              assignedUserId: IdSchema.optional(),
+              assignedUserName: z.string().optional(),
+              accountName: z.string().optional(),
+              contactName: z.string().optional(),
+              createdFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              createdTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              limit: z.number().min(1).max(200).default(20),
+              offset: z.number().min(0).default(0),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const where = [];
+            
+            if (validatedArgs.name) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'name',
+                value: validatedArgs.name
+              });
+            }
+            
+            if (validatedArgs.status) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'status',
+                value: validatedArgs.status
+              });
+            }
+            
+            if (validatedArgs.priority) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'priority',
+                value: validatedArgs.priority
+              });
+            }
+            
+            if (validatedArgs.type) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'type',
+                value: validatedArgs.type
+              });
+            }
+            
+            if (validatedArgs.assignedUserId) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'assignedUserId',
+                value: validatedArgs.assignedUserId
+              });
+            }
+            
+            if (validatedArgs.assignedUserName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'assignedUserName',
+                value: validatedArgs.assignedUserName
+              });
+            }
+            
+            if (validatedArgs.accountName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'accountName',
+                value: validatedArgs.accountName
+              });
+            }
+            
+            if (validatedArgs.contactName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'contactName',
+                value: validatedArgs.contactName
+              });
+            }
+            
+            if (validatedArgs.createdFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.createdTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdTo + ' 23:59:59'
+              });
+            }
+            
+            const response = await client.search<Case>('Case', {
+              where: where.length > 0 ? where : undefined,
+              select: ['id', 'name', 'number', 'status', 'priority', 'type', 'assignedUserName', 'accountName', 'contactName'],
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset,
+              orderBy: 'createdAt',
+              order: 'desc'
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: "No cases found matching the criteria." }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatCaseResults(response.list)
+                }
+              ]
+            };
+          }
+
+          case "update_case": {
+            const schema = z.object({
+              caseId: IdSchema,
+              name: z.string().min(1).max(255).optional(),
+              status: z.enum(['New', 'Assigned', 'Pending', 'Closed', 'Rejected', 'Duplicate']).optional(),
+              priority: z.enum(['Low', 'Normal', 'High', 'Urgent']).optional(),
+              type: z.enum(['Question', 'Incident', 'Problem', 'Feature Request']).optional(),
+              description: z.string().max(1000).optional(),
+              assignedUserId: IdSchema.optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const { caseId, ...updateData } = validatedArgs;
+            const sanitizedData = sanitizeInput(updateData);
+            
+            await client.put<Case>('Case', caseId, sanitizedData);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully updated case with ID: ${caseId}`
+                }
+              ]
+            };
+          }
+
+          case "add_note": {
+            const schema = z.object({
+              post: z.string().min(1),
+              parentType: z.string().min(1),
+              parentId: IdSchema,
+              type: z.enum(['Post']).default('Post'),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const sanitizedArgs = sanitizeInput(validatedArgs);
+            const note = await client.post<Note>('Note', sanitizedArgs);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully added note to ${validatedArgs.parentType} ${validatedArgs.parentId} with ID: ${note.id}`
+                }
+              ]
+            };
+          }
+
+          case "search_notes": {
+            const schema = z.object({
+              searchTerm: z.string().optional(),
+              parentType: z.string().optional(),
+              parentId: IdSchema.optional(),
+              createdById: IdSchema.optional(),
+              createdFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              createdTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              limit: z.number().min(1).max(200).default(20),
+              offset: z.number().min(0).default(0),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const where = [];
+            
+            if (validatedArgs.searchTerm) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'post',
+                value: validatedArgs.searchTerm
+              });
+            }
+            
+            if (validatedArgs.parentType) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'parentType',
+                value: validatedArgs.parentType
+              });
+            }
+            
+            if (validatedArgs.parentId) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'parentId',
+                value: validatedArgs.parentId
+              });
+            }
+            
+            if (validatedArgs.createdById) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'createdById',
+                value: validatedArgs.createdById
+              });
+            }
+            
+            if (validatedArgs.createdFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.createdTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdTo + ' 23:59:59'
+              });
+            }
+            
+            const response = await client.search<Note>('Note', {
+              where: where.length > 0 ? where : undefined,
+              select: ['id', 'post', 'parentType', 'parentName', 'createdByName', 'createdAt'],
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset,
+              orderBy: 'createdAt',
+              order: 'desc'
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: "No notes found matching the criteria." }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatNoteResults(response.list)
                 }
               ]
             };
