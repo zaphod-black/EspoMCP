@@ -1,4 +1,4 @@
-import { Contact, Account, Opportunity, Lead, Task, Meeting, User } from "../espocrm/types.js";
+import { Contact, Account, Opportunity, Lead, Task, Meeting, User, Team, GenericEntity } from "../espocrm/types.js";
 
 export function formatContactResults(contacts: Contact[]): string {
   if (!contacts || contacts.length === 0) {
@@ -112,6 +112,65 @@ export function formatLeadDetails(lead: Lead): string {
   if (lead.description) details += `Description: ${lead.description}\n`;
   if (lead.createdAt) details += `Created: ${formatDateTime(lead.createdAt)}\n`;
   if (lead.modifiedAt) details += `Modified: ${formatDateTime(lead.modifiedAt)}\n`;
+  
+  return details.trim();
+}
+
+export function formatTeamResults(teams: Team[]): string {
+  if (!teams || teams.length === 0) {
+    return "No teams found.";
+  }
+  
+  const formatted = teams.map(team => {
+    const description = team.description ? ` | ${team.description}` : '';
+    const memberCount = team.positionList?.length ? ` | ${team.positionList.length} positions` : '';
+    return `${team.name}${description}${memberCount}`;
+  }).join('\n');
+  
+  return `Found ${teams.length} team${teams.length === 1 ? '' : 's'}:\n${formatted}`;
+}
+
+export function formatGenericEntityResults(entities: GenericEntity[], entityType: string): string {
+  if (!entities || entities.length === 0) {
+    return `No ${entityType} records found.`;
+  }
+  
+  const formatted = entities.map(entity => {
+    // Try to find common display fields
+    const name = entity.name || entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.id;
+    const email = entity.emailAddress ? ` (${entity.emailAddress})` : '';
+    const status = entity.status ? ` | Status: ${entity.status}` : '';
+    return `${name}${email}${status}`;
+  }).join('\n');
+  
+  return `Found ${entities.length} ${entityType} record${entities.length === 1 ? '' : 's'}:\n${formatted}`;
+}
+
+export function formatGenericEntityDetails(entity: GenericEntity, entityType: string): string {
+  let details = `${entityType} Details:\n`;
+  
+  // Add common fields first
+  if (entity.id) details += `ID: ${entity.id}\n`;
+  if (entity.name) details += `Name: ${entity.name}\n`;
+  if (entity.firstName && entity.lastName) details += `Name: ${entity.firstName} ${entity.lastName}\n`;
+  if (entity.emailAddress) details += `Email: ${entity.emailAddress}\n`;
+  if (entity.phoneNumber) details += `Phone: ${entity.phoneNumber}\n`;
+  if (entity.status) details += `Status: ${entity.status}\n`;
+  if (entity.description) details += `Description: ${entity.description}\n`;
+  
+  // Add all other fields
+  for (const [key, value] of Object.entries(entity)) {
+    if (!['id', 'name', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'status', 'description'].includes(key)) {
+      if (value !== null && value !== undefined && value !== '') {
+        const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+        if (key.includes('At') && typeof value === 'string') {
+          details += `${formattedKey}: ${formatDateTime(value)}\n`;
+        } else {
+          details += `${formattedKey}: ${value}\n`;
+        }
+      }
+    }
+  }
   
   return details.trim();
 }

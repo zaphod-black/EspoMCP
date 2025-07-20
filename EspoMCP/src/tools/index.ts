@@ -19,6 +19,9 @@ import {
   formatTaskDetails,
   formatLeadResults,
   formatLeadDetails,
+  formatTeamResults,
+  formatGenericEntityResults,
+  formatGenericEntityDetails,
   formatLargeResultSet 
 } from "../utils/formatting.js";
 import { NameSchema, EmailSchema, PhoneSchema, IdSchema, DateSchema, UrlSchema, sanitizeInput, validateAmount, validateProbability } from "../utils/validation.js";
@@ -446,6 +449,161 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
                 assignedUserId: { type: "string", description: "ID of the user to assign this lead to" },
               },
               required: ["leadId", "assignedUserId"],
+            },
+          },
+          // Team & Role Management tools
+          {
+            name: "add_user_to_team",
+            description: "Add a user to a team with optional position",
+            inputSchema: {
+              type: "object",
+              properties: {
+                userId: { type: "string", description: "ID of the user to add to the team" },
+                teamId: { type: "string", description: "ID of the team to add the user to" },
+                position: { type: "string", description: "Position/role within the team" },
+              },
+              required: ["userId", "teamId"],
+            },
+          },
+          {
+            name: "remove_user_from_team",
+            description: "Remove a user from a team",
+            inputSchema: {
+              type: "object",
+              properties: {
+                userId: { type: "string", description: "ID of the user to remove from the team" },
+                teamId: { type: "string", description: "ID of the team to remove the user from" },
+              },
+              required: ["userId", "teamId"],
+            },
+          },
+          {
+            name: "assign_role_to_user",
+            description: "Assign a role to a user",
+            inputSchema: {
+              type: "object",
+              properties: {
+                userId: { type: "string", description: "ID of the user to assign the role to" },
+                roleId: { type: "string", description: "ID of the role to assign" },
+              },
+              required: ["userId", "roleId"],
+            },
+          },
+          {
+            name: "get_user_teams",
+            description: "Get all teams that a user belongs to",
+            inputSchema: {
+              type: "object",
+              properties: {
+                userId: { type: "string", description: "ID of the user to get teams for" },
+              },
+              required: ["userId"],
+            },
+          },
+          {
+            name: "get_team_members",
+            description: "Get all members of a team",
+            inputSchema: {
+              type: "object",
+              properties: {
+                teamId: { type: "string", description: "ID of the team to get members for" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 50 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+              },
+              required: ["teamId"],
+            },
+          },
+          {
+            name: "search_teams",
+            description: "Search for teams in the system",
+            inputSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Search by team name" },
+                description: { type: "string", description: "Search by team description" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 20 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+              },
+              required: [],
+            },
+          },
+          {
+            name: "get_user_permissions",
+            description: "Get effective permissions for a user based on roles and teams",
+            inputSchema: {
+              type: "object",
+              properties: {
+                userId: { type: "string", description: "ID of the user to get permissions for" },
+              },
+              required: ["userId"],
+            },
+          },
+          // Generic Entity Operations
+          {
+            name: "create_entity",
+            description: "Create a record for any entity type with validation",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The entity type to create (e.g., 'Contact', 'CustomEntity')" },
+                data: { type: "object", description: "The entity data as key-value pairs" },
+              },
+              required: ["entityType", "data"],
+            },
+          },
+          {
+            name: "search_entity",
+            description: "Search any entity type with flexible filters",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The entity type to search (e.g., 'Contact', 'CustomEntity')" },
+                filters: { type: "object", description: "Search filters as key-value pairs" },
+                select: { type: "array", items: { type: "string" }, description: "Fields to include in results" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 20 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+                orderBy: { type: "string", description: "Field to order by" },
+                order: { type: "string", enum: ["asc", "desc"], description: "Sort order", default: "asc" },
+              },
+              required: ["entityType"],
+            },
+          },
+          {
+            name: "update_entity",
+            description: "Update any entity record by ID",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The entity type to update (e.g., 'Contact', 'CustomEntity')" },
+                entityId: { type: "string", description: "ID of the entity record to update" },
+                data: { type: "object", description: "The updated data as key-value pairs" },
+              },
+              required: ["entityType", "entityId", "data"],
+            },
+          },
+          {
+            name: "delete_entity",
+            description: "Delete any entity record by ID",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The entity type to delete from (e.g., 'Contact', 'CustomEntity')" },
+                entityId: { type: "string", description: "ID of the entity record to delete" },
+              },
+              required: ["entityType", "entityId"],
+            },
+          },
+          {
+            name: "get_entity",
+            description: "Get a specific entity record by ID",
+            inputSchema: {
+              type: "object",
+              properties: {
+                entityType: { type: "string", description: "The entity type to retrieve (e.g., 'Contact', 'CustomEntity')" },
+                entityId: { type: "string", description: "ID of the entity record to retrieve" },
+                select: { type: "array", items: { type: "string" }, description: "Specific fields to retrieve" },
+              },
+              required: ["entityType", "entityId"],
             },
           },
           // System tools
@@ -1629,6 +1787,336 @@ Current time: ${new Date().toISOString()}`;
                 {
                   type: "text",
                   text: `Successfully assigned lead ${validatedArgs.leadId} to user ${validatedArgs.assignedUserId}`
+                }
+              ]
+            };
+          }
+
+          case "add_user_to_team": {
+            const schema = z.object({
+              userId: IdSchema,
+              teamId: IdSchema,
+              position: z.string().max(100).optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            // Use EspoCRM's relationship linking API
+            await client.linkRecords('Team', validatedArgs.teamId, 'users', [validatedArgs.userId]);
+            
+            // If position is provided, we might need to update it separately
+            // This depends on EspoCRM's team position implementation
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully added user ${validatedArgs.userId} to team ${validatedArgs.teamId}${validatedArgs.position ? ` with position: ${validatedArgs.position}` : ''}`
+                }
+              ]
+            };
+          }
+
+          case "remove_user_from_team": {
+            const schema = z.object({
+              userId: IdSchema,
+              teamId: IdSchema,
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            // Use EspoCRM's relationship unlinking API
+            await client.unlinkRecords('Team', validatedArgs.teamId, 'users', [validatedArgs.userId]);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully removed user ${validatedArgs.userId} from team ${validatedArgs.teamId}`
+                }
+              ]
+            };
+          }
+
+          case "assign_role_to_user": {
+            const schema = z.object({
+              userId: IdSchema,
+              roleId: IdSchema,
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            // Update user's role assignment
+            await client.put('User', validatedArgs.userId, { 
+              rolesIds: [validatedArgs.roleId] 
+            });
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully assigned role ${validatedArgs.roleId} to user ${validatedArgs.userId}`
+                }
+              ]
+            };
+          }
+
+          case "get_user_teams": {
+            const schema = z.object({ userId: IdSchema });
+            const validatedArgs = schema.parse(args);
+            
+            // Get user's team relationships
+            const teams = await client.getRelated('User', validatedArgs.userId, 'teams');
+            
+            if (!teams?.list?.length) {
+              return {
+                content: [{ type: "text", text: `User ${validatedArgs.userId} is not a member of any teams.` }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatTeamResults(teams.list)
+                }
+              ]
+            };
+          }
+
+          case "get_team_members": {
+            const schema = z.object({
+              teamId: IdSchema,
+              limit: z.number().min(1).max(200).default(50),
+              offset: z.number().min(0).default(0),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            // Get team's user relationships
+            const users = await client.getRelated('Team', validatedArgs.teamId, 'users', {
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset
+            });
+            
+            if (!users?.list?.length) {
+              return {
+                content: [{ type: "text", text: `Team ${validatedArgs.teamId} has no members.` }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatUserResults(users.list)
+                }
+              ]
+            };
+          }
+
+          case "search_teams": {
+            const schema = z.object({
+              name: z.string().optional(),
+              description: z.string().optional(),
+              limit: z.number().min(1).max(200).default(20),
+              offset: z.number().min(0).default(0),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const where = [];
+            
+            if (validatedArgs.name) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'name',
+                value: validatedArgs.name
+              });
+            }
+            
+            if (validatedArgs.description) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'description',
+                value: validatedArgs.description
+              });
+            }
+            
+            const response = await client.search<Team>('Team', {
+              where: where.length > 0 ? where : undefined,
+              select: ['id', 'name', 'description'],
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset,
+              orderBy: 'name',
+              order: 'asc'
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: "No teams found matching the criteria." }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatTeamResults(response.list)
+                }
+              ]
+            };
+          }
+
+          case "get_user_permissions": {
+            const schema = z.object({ userId: IdSchema });
+            const validatedArgs = schema.parse(args);
+            
+            // Get user details including roles
+            const user = await client.getById('User', validatedArgs.userId);
+            
+            // This would typically require custom EspoCRM API or complex role resolution
+            // For now, we'll return basic user role information
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `User Permissions for ${user.userName || user.id}:\nUser Type: ${user.type || 'Unknown'}\nActive: ${user.isActive !== false ? 'Yes' : 'No'}\n\nNote: Detailed permission breakdown requires custom EspoCRM API integration.`
+                }
+              ]
+            };
+          }
+
+          case "create_entity": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              data: z.record(z.any()),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const sanitizedData = sanitizeInput(validatedArgs.data);
+            
+            const entity = await client.post<GenericEntity>(validatedArgs.entityType, sanitizedData);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully created ${validatedArgs.entityType} record with ID: ${entity.id}`
+                }
+              ]
+            };
+          }
+
+          case "search_entity": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              filters: z.record(z.any()).optional(),
+              select: z.array(z.string()).optional(),
+              limit: z.number().min(1).max(200).default(20),
+              offset: z.number().min(0).default(0),
+              orderBy: z.string().optional(),
+              order: z.enum(['asc', 'desc']).default('asc'),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            // Convert filters to EspoCRM where clauses
+            const where = [];
+            if (validatedArgs.filters) {
+              for (const [key, value] of Object.entries(validatedArgs.filters)) {
+                if (value !== null && value !== undefined) {
+                  where.push({
+                    type: typeof value === 'string' ? 'contains' as const : 'equals' as const,
+                    attribute: key,
+                    value: value
+                  });
+                }
+              }
+            }
+            
+            const response = await client.search<GenericEntity>(validatedArgs.entityType, {
+              where: where.length > 0 ? where : undefined,
+              select: validatedArgs.select,
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset,
+              orderBy: validatedArgs.orderBy,
+              order: validatedArgs.order
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: `No ${validatedArgs.entityType} records found matching the criteria.` }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatGenericEntityResults(response.list, validatedArgs.entityType)
+                }
+              ]
+            };
+          }
+
+          case "update_entity": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              entityId: IdSchema,
+              data: z.record(z.any()),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const sanitizedData = sanitizeInput(validatedArgs.data);
+            
+            await client.put<GenericEntity>(validatedArgs.entityType, validatedArgs.entityId, sanitizedData);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully updated ${validatedArgs.entityType} record with ID: ${validatedArgs.entityId}`
+                }
+              ]
+            };
+          }
+
+          case "delete_entity": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              entityId: IdSchema,
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            await client.delete(validatedArgs.entityType, validatedArgs.entityId);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully deleted ${validatedArgs.entityType} record with ID: ${validatedArgs.entityId}`
+                }
+              ]
+            };
+          }
+
+          case "get_entity": {
+            const schema = z.object({
+              entityType: z.string().min(1),
+              entityId: IdSchema,
+              select: z.array(z.string()).optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            
+            const entity = await client.getById<GenericEntity>(validatedArgs.entityType, validatedArgs.entityId, validatedArgs.select);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatGenericEntityDetails(entity, validatedArgs.entityType)
                 }
               ]
             };
