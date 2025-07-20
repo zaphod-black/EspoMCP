@@ -211,6 +211,7 @@ export class EspoCRMClient {
       return { success: false };
     }
   }
+
   
   // Helper method to build where clauses
   static buildWhereClause(filters: Record<string, any>): WhereClause[] {

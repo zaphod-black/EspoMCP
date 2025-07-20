@@ -3,7 +3,7 @@ import { CallToolResult, CallToolRequest, ListToolsRequestSchema, CallToolReques
 import { z } from "zod";
 import { EspoCRMClient } from "../espocrm/client.js";
 import { Config } from "../types.js";
-import { Contact, Account, Opportunity } from "../espocrm/types.js";
+import { Contact, Account, Opportunity, Meeting, User } from "../espocrm/types.js";
 import { 
   formatContactResults, 
   formatContactDetails, 
@@ -11,6 +11,10 @@ import {
   formatAccountDetails,
   formatOpportunityResults,
   formatOpportunityDetails,
+  formatMeetingResults,
+  formatMeetingDetails,
+  formatUserResults,
+  formatUserDetails,
   formatLargeResultSet 
 } from "../utils/formatting.js";
 import { NameSchema, EmailSchema, PhoneSchema, IdSchema, DateSchema, UrlSchema, sanitizeInput, validateAmount, validateProbability } from "../utils/validation.js";
@@ -70,6 +74,10 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
                 accountName: { type: "string", description: "Filter by account/company name" },
                 emailAddress: { type: "string", description: "Filter by email address" },
                 phoneNumber: { type: "string", description: "Filter by phone number" },
+                createdFrom: { type: "string", description: "Filter by creation date from (YYYY-MM-DD format)" },
+                createdTo: { type: "string", description: "Filter by creation date to (YYYY-MM-DD format)" },
+                modifiedFrom: { type: "string", description: "Filter by modification date from (YYYY-MM-DD format)" },
+                modifiedTo: { type: "string", description: "Filter by modification date to (YYYY-MM-DD format)" },
                 limit: { type: "number", description: "Maximum number of results to return", default: 20 },
                 offset: { type: "number", description: "Number of records to skip", default: 0 },
               },
@@ -114,6 +122,10 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
                 name: { type: "string", description: "Search by company name" },
                 type: { type: "string", enum: ["Customer", "Investor", "Partner", "Reseller"], description: "Filter by account type" },
                 industry: { type: "string", description: "Filter by industry" },
+                createdFrom: { type: "string", description: "Filter by creation date from (YYYY-MM-DD format)" },
+                createdTo: { type: "string", description: "Filter by creation date to (YYYY-MM-DD format)" },
+                modifiedFrom: { type: "string", description: "Filter by modification date from (YYYY-MM-DD format)" },
+                modifiedTo: { type: "string", description: "Filter by modification date to (YYYY-MM-DD format)" },
                 limit: { type: "number", description: "Maximum number of results to return", default: 20 },
                 offset: { type: "number", description: "Number of records to skip", default: 0 },
               },
@@ -161,6 +173,103 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
                 offset: { type: "number", description: "Number of records to skip", default: 0 },
               },
               required: [],
+            },
+          },
+          // Meeting tools
+          {
+            name: "create_meeting",
+            description: "Create a new meeting in EspoCRM",
+            inputSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Meeting name/title" },
+                dateStart: { type: "string", description: "Start date and time in ISO format (YYYY-MM-DDTHH:mm:ss)" },
+                dateEnd: { type: "string", description: "End date and time in ISO format (YYYY-MM-DDTHH:mm:ss)" },
+                location: { type: "string", description: "Meeting location" },
+                description: { type: "string", description: "Meeting description or agenda" },
+                status: { type: "string", enum: ["Planned", "Held", "Not Held"], description: "Meeting status", default: "Planned" },
+                parentType: { type: "string", description: "Related entity type (Account, Contact, etc.)" },
+                parentId: { type: "string", description: "ID of related entity" },
+                contactsIds: { type: "array", items: { type: "string" }, description: "Array of contact IDs to invite" },
+                usersIds: { type: "array", items: { type: "string" }, description: "Array of user IDs to invite" },
+              },
+              required: ["name", "dateStart", "dateEnd"],
+            },
+          },
+          {
+            name: "search_meetings",
+            description: "Search for meetings using flexible criteria",
+            inputSchema: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Search by meeting name" },
+                status: { type: "string", enum: ["Planned", "Held", "Not Held"], description: "Filter by meeting status" },
+                dateFrom: { type: "string", description: "Start date range in YYYY-MM-DD format" },
+                dateTo: { type: "string", description: "End date range in YYYY-MM-DD format" },
+                assignedUserName: { type: "string", description: "Filter by assigned user" },
+                location: { type: "string", description: "Filter by location" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 20 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+              },
+              required: [],
+            },
+          },
+          {
+            name: "get_meeting",
+            description: "Get detailed information about a specific meeting by ID",
+            inputSchema: {
+              type: "object",
+              properties: {
+                meetingId: { type: "string", description: "The unique ID of the meeting to retrieve" },
+              },
+              required: ["meetingId"],
+            },
+          },
+          {
+            name: "update_meeting",
+            description: "Update an existing meeting in EspoCRM",
+            inputSchema: {
+              type: "object",
+              properties: {
+                meetingId: { type: "string", description: "The unique ID of the meeting to update" },
+                name: { type: "string", description: "Meeting name/title" },
+                dateStart: { type: "string", description: "Start date and time in ISO format" },
+                dateEnd: { type: "string", description: "End date and time in ISO format" },
+                location: { type: "string", description: "Meeting location" },
+                description: { type: "string", description: "Meeting description or agenda" },
+                status: { type: "string", enum: ["Planned", "Held", "Not Held"], description: "Meeting status" },
+              },
+              required: ["meetingId"],
+            },
+          },
+          // User tools
+          {
+            name: "search_users",
+            description: "Search for users in the EspoCRM system",
+            inputSchema: {
+              type: "object",
+              properties: {
+                userName: { type: "string", description: "Search by username" },
+                emailAddress: { type: "string", description: "Search by email address" },
+                firstName: { type: "string", description: "Search by first name" },
+                lastName: { type: "string", description: "Search by last name" },
+                isActive: { type: "boolean", description: "Filter by active status" },
+                type: { type: "string", enum: ["admin", "regular", "portal", "api"], description: "Filter by user type" },
+                limit: { type: "number", description: "Maximum number of results to return", default: 20 },
+                offset: { type: "number", description: "Number of records to skip", default: 0 },
+              },
+              required: [],
+            },
+          },
+          {
+            name: "get_user_by_email",
+            description: "Find a user by their email address",
+            inputSchema: {
+              type: "object",
+              properties: {
+                emailAddress: { type: "string", description: "Email address to search for" },
+              },
+              required: ["emailAddress"],
             },
           },
           // System tools
@@ -215,6 +324,10 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
               accountName: z.string().optional(),
               emailAddress: z.string().optional(),
               phoneNumber: z.string().optional(),
+              createdFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              createdTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              modifiedFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              modifiedTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
               limit: z.number().min(1).max(200).default(20),
               offset: z.number().min(0).default(0),
             });
@@ -238,6 +351,38 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
                 type: 'contains' as const,
                 attribute: 'accountName',
                 value: validatedArgs.accountName
+              });
+            }
+            
+            if (validatedArgs.createdFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.createdTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdTo + ' 23:59:59'
+              });
+            }
+            
+            if (validatedArgs.modifiedFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'modifiedAt',
+                value: validatedArgs.modifiedFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.modifiedTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'modifiedAt',
+                value: validatedArgs.modifiedTo + ' 23:59:59'
               });
             }
             
@@ -311,6 +456,10 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
               name: z.string().optional(),
               type: z.enum(['Customer', 'Investor', 'Partner', 'Reseller']).optional(),
               industry: z.string().optional(),
+              createdFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              createdTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              modifiedFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              modifiedTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
               limit: z.number().min(1).max(200).default(20),
               offset: z.number().min(0).default(0),
             });
@@ -339,6 +488,38 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
                 type: 'contains' as const,
                 attribute: 'industry',
                 value: validatedArgs.industry
+              });
+            }
+            
+            if (validatedArgs.createdFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.createdTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'createdAt',
+                value: validatedArgs.createdTo + ' 23:59:59'
+              });
+            }
+            
+            if (validatedArgs.modifiedFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'modifiedAt',
+                value: validatedArgs.modifiedFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.modifiedTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'modifiedAt',
+                value: validatedArgs.modifiedTo + ' 23:59:59'
               });
             }
             
@@ -479,6 +660,289 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
             };
           }
 
+          case "create_meeting": {
+            const schema = z.object({
+              name: z.string().min(1).max(255),
+              dateStart: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, "Invalid ISO datetime format"),
+              dateEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, "Invalid ISO datetime format"),
+              location: z.string().max(255).optional(),
+              description: z.string().max(1000).optional(),
+              status: z.enum(['Planned', 'Held', 'Not Held']).default('Planned'),
+              parentType: z.string().optional(),
+              parentId: IdSchema.optional(),
+              contactsIds: z.array(IdSchema).optional(),
+              usersIds: z.array(IdSchema).optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const sanitizedArgs = sanitizeInput(validatedArgs);
+            const meeting = await client.post<Meeting>('Meeting', sanitizedArgs);
+            
+            // Link contacts and users if provided
+            if (validatedArgs.contactsIds?.length) {
+              await client.linkRecords('Meeting', meeting.id!, 'contacts', validatedArgs.contactsIds);
+            }
+            if (validatedArgs.usersIds?.length) {
+              await client.linkRecords('Meeting', meeting.id!, 'users', validatedArgs.usersIds);
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully created meeting "${validatedArgs.name}" (${validatedArgs.status}) with ID: ${meeting.id}`
+                }
+              ]
+            };
+          }
+
+          case "search_meetings": {
+            const schema = z.object({
+              name: z.string().optional(),
+              status: z.enum(['Planned', 'Held', 'Not Held']).optional(),
+              dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD").optional(),
+              assignedUserName: z.string().optional(),
+              location: z.string().optional(),
+              limit: z.number().min(1).max(200).default(20),
+              offset: z.number().min(0).default(0),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const where = [];
+            
+            if (validatedArgs.name) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'name',
+                value: validatedArgs.name
+              });
+            }
+            
+            if (validatedArgs.status) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'status',
+                value: validatedArgs.status
+              });
+            }
+            
+            if (validatedArgs.dateFrom) {
+              where.push({
+                type: 'greaterThanOrEquals' as const,
+                attribute: 'dateStart',
+                value: validatedArgs.dateFrom + ' 00:00:00'
+              });
+            }
+            
+            if (validatedArgs.dateTo) {
+              where.push({
+                type: 'lessThanOrEquals' as const,
+                attribute: 'dateStart',
+                value: validatedArgs.dateTo + ' 23:59:59'
+              });
+            }
+            
+            if (validatedArgs.assignedUserName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'assignedUserName',
+                value: validatedArgs.assignedUserName
+              });
+            }
+            
+            if (validatedArgs.location) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'location',
+                value: validatedArgs.location
+              });
+            }
+            
+            const response = await client.search<Meeting>('Meeting', {
+              where: where.length > 0 ? where : undefined,
+              select: ['id', 'name', 'status', 'dateStart', 'dateEnd', 'location', 'assignedUserName'],
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset,
+              orderBy: 'dateStart',
+              order: 'asc'
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: "No meetings found matching the criteria." }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatLargeResultSet(response.list, formatMeetingResults, validatedArgs.limit)
+                }
+              ]
+            };
+          }
+
+          case "get_meeting": {
+            const schema = z.object({ meetingId: IdSchema });
+            const validatedArgs = schema.parse(args);
+            const meeting = await client.getById<Meeting>('Meeting', validatedArgs.meetingId);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatMeetingDetails(meeting)
+                }
+              ]
+            };
+          }
+
+          case "update_meeting": {
+            const schema = z.object({
+              meetingId: IdSchema,
+              name: z.string().min(1).max(255).optional(),
+              dateStart: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, "Invalid ISO datetime format").optional(),
+              dateEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, "Invalid ISO datetime format").optional(),
+              location: z.string().max(255).optional(),
+              description: z.string().max(1000).optional(),
+              status: z.enum(['Planned', 'Held', 'Not Held']).optional(),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const { meetingId, ...updateData } = validatedArgs;
+            const sanitizedData = sanitizeInput(updateData);
+            
+            await client.put<Meeting>('Meeting', meetingId, sanitizedData);
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Successfully updated meeting with ID: ${meetingId}`
+                }
+              ]
+            };
+          }
+
+          case "search_users": {
+            const schema = z.object({
+              userName: z.string().optional(),
+              emailAddress: EmailSchema.optional(),
+              firstName: z.string().optional(),
+              lastName: z.string().optional(),
+              isActive: z.boolean().optional(),
+              type: z.enum(['admin', 'regular', 'portal', 'api']).optional(),
+              limit: z.number().min(1).max(200).default(20),
+              offset: z.number().min(0).default(0),
+            });
+            
+            const validatedArgs = schema.parse(args);
+            const where = [];
+            
+            if (validatedArgs.userName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'userName',
+                value: validatedArgs.userName
+              });
+            }
+            
+            if (validatedArgs.emailAddress) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'emailAddress',
+                value: validatedArgs.emailAddress
+              });
+            }
+            
+            if (validatedArgs.firstName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'firstName',
+                value: validatedArgs.firstName
+              });
+            }
+            
+            if (validatedArgs.lastName) {
+              where.push({
+                type: 'contains' as const,
+                attribute: 'lastName',
+                value: validatedArgs.lastName
+              });
+            }
+            
+            if (validatedArgs.isActive !== undefined) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'isActive',
+                value: validatedArgs.isActive
+              });
+            }
+            
+            if (validatedArgs.type) {
+              where.push({
+                type: 'equals' as const,
+                attribute: 'type',
+                value: validatedArgs.type
+              });
+            }
+            
+            const response = await client.search<User>('User', {
+              where: where.length > 0 ? where : undefined,
+              select: ['id', 'userName', 'firstName', 'lastName', 'emailAddress', 'type', 'isActive'],
+              maxSize: validatedArgs.limit,
+              offset: validatedArgs.offset,
+              orderBy: 'userName',
+              order: 'asc'
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: "No users found matching the criteria." }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatLargeResultSet(response.list, formatUserResults, validatedArgs.limit)
+                }
+              ]
+            };
+          }
+
+          case "get_user_by_email": {
+            const schema = z.object({ emailAddress: EmailSchema });
+            const validatedArgs = schema.parse(args);
+            
+            const response = await client.search<User>('User', {
+              where: [{
+                type: 'equals' as const,
+                attribute: 'emailAddress',
+                value: validatedArgs.emailAddress
+              }],
+              maxSize: 1
+            });
+            
+            if (!response.list?.length) {
+              return {
+                content: [{ type: "text", text: `No user found with email: ${validatedArgs.emailAddress}` }]
+              };
+            }
+            
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: formatUserDetails(response.list[0])
+                }
+              ]
+            };
+          }
+
           case "health_check": {
             const connectionTest = await client.testConnection();
             
@@ -488,12 +952,14 @@ export async function setupEspoCRMTools(server: Server, config: Config): Promise
             
             const contactTest = await client.search('Contact', { maxSize: 1 });
             const accountTest = await client.search('Account', { maxSize: 1 });
+            const meetingTest = await client.search('Meeting', { maxSize: 1 });
             
             const result = `✓ EspoCRM connection healthy
 ✓ API authentication working
 ✓ Database accessible
 ✓ Contact API functional
 ✓ Account API functional
+✓ Meeting API functional
 Server version: ${connectionTest.version || 'Unknown'}
 User: ${connectionTest.user?.userName || 'Unknown'}
 Current time: ${new Date().toISOString()}`;

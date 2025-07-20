@@ -87,6 +87,39 @@ export interface Task {
   description?: string;
 }
 
+export interface Meeting {
+  id?: string;
+  name: string;
+  status: 'Planned' | 'Held' | 'Not Held';
+  dateStart: string;
+  dateEnd: string;
+  location?: string;
+  description?: string;
+  assignedUserId?: string;
+  assignedUserName?: string;
+  parentType?: string;
+  parentId?: string;
+  parentName?: string;
+  contacts?: string[];
+  users?: string[];
+  googleEventId?: string;
+  createdAt?: string;
+  modifiedAt?: string;
+}
+
+export interface User {
+  id?: string;
+  userName: string;
+  firstName?: string;
+  lastName?: string;
+  emailAddress?: string;
+  phoneNumber?: string;
+  isActive?: boolean;
+  type?: 'admin' | 'regular' | 'portal' | 'api';
+  createdAt?: string;
+  modifiedAt?: string;
+}
+
 export interface Address {
   street?: string;
   city?: string;

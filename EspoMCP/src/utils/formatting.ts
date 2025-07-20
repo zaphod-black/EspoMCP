@@ -1,4 +1,4 @@
-import { Contact, Account, Opportunity, Lead, Task } from "../espocrm/types.js";
+import { Contact, Account, Opportunity, Lead, Task, Meeting, User } from "../espocrm/types.js";
 
 export function formatContactResults(contacts: Contact[]): string {
   if (!contacts || contacts.length === 0) {
@@ -126,6 +126,71 @@ export function formatOpportunityDetails(opportunity: Opportunity): string {
   if (opportunity.description) details += `Description: ${opportunity.description}\n`;
   if (opportunity.createdAt) details += `Created: ${formatDateTime(opportunity.createdAt)}\n`;
   if (opportunity.modifiedAt) details += `Modified: ${formatDateTime(opportunity.modifiedAt)}\n`;
+  
+  return details.trim();
+}
+
+export function formatMeetingResults(meetings: Meeting[]): string {
+  if (!meetings || meetings.length === 0) {
+    return "No meetings found.";
+  }
+  
+  const formatted = meetings.map(meeting => {
+    const dateTime = `${formatDateTime(meeting.dateStart)} - ${formatDateTime(meeting.dateEnd)}`;
+    const location = meeting.location ? ` | ${meeting.location}` : '';
+    const attendees = meeting.contacts?.length ? ` | ${meeting.contacts.length} attendees` : '';
+    return `${meeting.name} (${meeting.status}) | ${dateTime}${location}${attendees}`;
+  }).join('\n');
+  
+  return `Found ${meetings.length} meeting${meetings.length === 1 ? '' : 's'}:\n${formatted}`;
+}
+
+export function formatMeetingDetails(meeting: Meeting): string {
+  let details = `Meeting Details:\n`;
+  details += `Name: ${meeting.name}\n`;
+  details += `Status: ${meeting.status}\n`;
+  details += `Start: ${formatDateTime(meeting.dateStart)}\n`;
+  details += `End: ${formatDateTime(meeting.dateEnd)}\n`;
+  
+  if (meeting.location) details += `Location: ${meeting.location}\n`;
+  if (meeting.description) details += `Description: ${meeting.description}\n`;
+  if (meeting.assignedUserName) details += `Assigned User: ${meeting.assignedUserName}\n`;
+  if (meeting.parentName) details += `Related to: ${meeting.parentName}\n`;
+  if (meeting.googleEventId) details += `Google Event ID: ${meeting.googleEventId}\n`;
+  if (meeting.contacts?.length) details += `Contacts: ${meeting.contacts.length} attendees\n`;
+  if (meeting.createdAt) details += `Created: ${formatDateTime(meeting.createdAt)}\n`;
+  if (meeting.modifiedAt) details += `Modified: ${formatDateTime(meeting.modifiedAt)}\n`;
+  
+  return details.trim();
+}
+
+export function formatUserResults(users: User[]): string {
+  if (!users || users.length === 0) {
+    return "No users found.";
+  }
+  
+  const formatted = users.map(user => {
+    const name = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.userName;
+    const email = user.emailAddress ? ` (${user.emailAddress})` : '';
+    const type = user.type ? ` | ${user.type}` : '';
+    const status = user.isActive === false ? ' | Inactive' : '';
+    return `${name}${email}${type}${status}`;
+  }).join('\n');
+  
+  return `Found ${users.length} user${users.length === 1 ? '' : 's'}:\n${formatted}`;
+}
+
+export function formatUserDetails(user: User): string {
+  let details = `User Details:\n`;
+  details += `Username: ${user.userName}\n`;
+  
+  if (user.firstName && user.lastName) details += `Name: ${user.firstName} ${user.lastName}\n`;
+  if (user.emailAddress) details += `Email: ${user.emailAddress}\n`;
+  if (user.phoneNumber) details += `Phone: ${user.phoneNumber}\n`;
+  if (user.type) details += `Type: ${user.type}\n`;
+  details += `Active: ${user.isActive !== false ? 'Yes' : 'No'}\n`;
+  if (user.createdAt) details += `Created: ${formatDateTime(user.createdAt)}\n`;
+  if (user.modifiedAt) details += `Modified: ${formatDateTime(user.modifiedAt)}\n`;
   
   return details.trim();
 }
