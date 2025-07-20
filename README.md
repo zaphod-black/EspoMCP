@@ -106,7 +106,7 @@ LOG_LEVEL=info
 
 ## Available Tools
 
-The MCP server provides 27 comprehensive tools for EspoCRM integration:
+The MCP server provides 39 comprehensive tools for EspoCRM integration:
 
 ### Contact Management
 - **`create_contact`** - Create new contacts with full field support
@@ -144,6 +144,22 @@ The MCP server provides 27 comprehensive tools for EspoCRM integration:
 - **`update_lead`** - Update lead properties and status
 - **`convert_lead`** - Convert leads to contacts, accounts, and/or opportunities
 - **`assign_lead`** - Assign or reassign leads to specific users
+
+### Team & Role Management
+- **`add_user_to_team`** - Add users to teams with optional position assignment
+- **`remove_user_from_team`** - Remove users from teams
+- **`assign_role_to_user`** - Assign roles to users for permissions management
+- **`get_user_teams`** - Get all teams that a user belongs to
+- **`get_team_members`** - Get all members of a specific team
+- **`search_teams`** - Search teams by name and description
+- **`get_user_permissions`** - Get effective permissions for a user based on roles
+
+### Generic Entity Operations
+- **`create_entity`** - Create records for any entity type (including custom entities)
+- **`search_entity`** - Search any entity type with flexible filters and field selection
+- **`update_entity`** - Update any entity record by ID with flexible data
+- **`delete_entity`** - Delete any entity record by ID
+- **`get_entity`** - Get specific entity records with optional field selection
 
 ### System Tools
 - **`health_check`** - Verify server and EspoCRM connectivity across all entities
@@ -234,6 +250,92 @@ await client.callTool('convert_lead', {
   createOpportunity: true,
   opportunityName: 'Smith Industries - Enterprise Deal',
   opportunityAmount: 50000
+});
+```
+
+### Team & Role Management
+
+```javascript
+// Add user to team with position
+await client.callTool('add_user_to_team', {
+  userId: 'user123',
+  teamId: 'sales-team',
+  position: 'Sales Manager'
+});
+
+// Get all members of a team
+await client.callTool('get_team_members', {
+  teamId: 'sales-team',
+  limit: 50
+});
+
+// Assign role to user for permissions
+await client.callTool('assign_role_to_user', {
+  userId: 'user123',
+  roleId: 'manager-role'
+});
+
+// Search teams by criteria
+await client.callTool('search_teams', {
+  name: 'Sales',
+  description: 'revenue'
+});
+
+// Get user's effective permissions
+await client.callTool('get_user_permissions', {
+  userId: 'user123'
+});
+```
+
+### Generic Entity Operations
+
+```javascript
+// Create any entity type (including custom entities)
+await client.callTool('create_entity', {
+  entityType: 'CustomProduct',
+  data: {
+    name: 'Premium Widget',
+    price: 199.99,
+    category: 'Electronics',
+    inStock: true
+  }
+});
+
+// Search any entity with flexible filters
+await client.callTool('search_entity', {
+  entityType: 'CustomOrder',
+  filters: {
+    status: 'pending',
+    totalAmount: 1000,
+    customerType: 'enterprise'
+  },
+  select: ['id', 'orderNumber', 'customerName', 'totalAmount'],
+  orderBy: 'createdAt',
+  order: 'desc'
+});
+
+// Update any entity record
+await client.callTool('update_entity', {
+  entityType: 'CustomProduct',
+  entityId: 'prod123',
+  data: {
+    price: 179.99,
+    inStock: false,
+    lastModified: '2025-07-20T10:30:00Z'
+  }
+});
+
+// Delete any entity record
+await client.callTool('delete_entity', {
+  entityType: 'CustomProduct',
+  entityId: 'prod123'
+});
+
+// Get specific entity with field selection
+await client.callTool('get_entity', {
+  entityType: 'CustomOrder',
+  entityId: 'order456',
+  select: ['orderNumber', 'customerName', 'items', 'totalAmount']
 });
 ```
 
@@ -606,6 +708,48 @@ All tools use Zod schemas for validation. Key schemas include:
 }
 ```
 
+#### Team Schema
+```typescript
+{
+  name: string,
+  description?: string,
+  positionList?: string[],  // Available positions in the team
+}
+```
+
+#### Generic Entity Schema
+```typescript
+{
+  entityType: string,       // Entity type name (e.g., 'Contact', 'CustomProduct')
+  data: {                   // Flexible key-value pairs
+    [key: string]: any
+  },
+  // Optional for search/get operations
+  filters?: {
+    [field: string]: any
+  },
+  select?: string[],        // Fields to retrieve
+  orderBy?: string,
+  order?: 'asc' | 'desc'
+}
+```
+
+#### Team Management Operations
+```typescript
+// Add user to team
+{
+  userId: string,
+  teamId: string,
+  position?: string         // Optional position within team
+}
+
+// Role assignment
+{
+  userId: string,
+  roleId: string
+}
+```
+
 #### Search Parameters
 ```typescript
 {
@@ -727,6 +871,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **MCP Specification**: [Model Context Protocol Documentation](https://spec.modelcontextprotocol.io/)
 
 ## Changelog
+
+### Version 1.4.0 - Phase 2 Complete Enterprise Solution
+- **Team & Role Management**: 7 new tools for complete user/team/role administration
+- **Generic Entity Operations**: 5 new tools for manipulating any EspoCRM entity (including custom entities)
+- **Team Administration**: Add/remove users from teams, assign positions, get team members
+- **Role Assignment**: Assign roles to users and get effective permissions
+- **Universal Entity Support**: Create, read, update, delete, and search any entity type
+- **Custom Entity Support**: Full support for custom EspoCRM entities and fields
+- **Enhanced Type Safety**: Added Team, Role, and GenericEntity TypeScript interfaces
+- **Tool Count**: Expanded from 27 to 39 comprehensive tools (+12 new tools)
 
 ### Version 1.3.0 - Phase 1 Expansion
 - **Task Management**: Complete task lifecycle with 5 new tools (create, search, get, update, assign)
