@@ -78,6 +78,44 @@ export function formatTaskResults(tasks: Task[]): string {
   return `Found ${tasks.length} task${tasks.length === 1 ? '' : 's'}:\n${formatted}`;
 }
 
+export function formatTaskDetails(task: Task): string {
+  let details = `Task Details:\n`;
+  details += `Name: ${task.name}\n`;
+  details += `Status: ${task.status}\n`;
+  details += `Priority: ${task.priority}\n`;
+  
+  if (task.assignedUserName) details += `Assigned User: ${task.assignedUserName}\n`;
+  if (task.parentType && task.parentName) details += `Related to: ${task.parentName} (${task.parentType})\n`;
+  if (task.dateStart) details += `Start Date: ${formatDateTime(task.dateStart)}\n`;
+  if (task.dateEnd) details += `Due Date: ${formatDateTime(task.dateEnd)}\n`;
+  if (task.dateStartDate) details += `Start Date (Date only): ${formatDate(task.dateStartDate)}\n`;
+  if (task.dateEndDate) details += `Due Date (Date only): ${formatDate(task.dateEndDate)}\n`;
+  if (task.description) details += `Description: ${task.description}\n`;
+  if (task.createdAt) details += `Created: ${formatDateTime(task.createdAt)}\n`;
+  if (task.modifiedAt) details += `Modified: ${formatDateTime(task.modifiedAt)}\n`;
+  
+  return details.trim();
+}
+
+export function formatLeadDetails(lead: Lead): string {
+  let details = `Lead Details:\n`;
+  details += `Name: ${lead.firstName} ${lead.lastName}\n`;
+  details += `Status: ${lead.status}\n`;
+  details += `Source: ${lead.source}\n`;
+  
+  if (lead.emailAddress) details += `Email: ${lead.emailAddress}\n`;
+  if (lead.phoneNumber) details += `Phone: ${lead.phoneNumber}\n`;
+  if (lead.accountName) details += `Company: ${lead.accountName}\n`;
+  if (lead.website) details += `Website: ${lead.website}\n`;
+  if (lead.industry) details += `Industry: ${lead.industry}\n`;
+  if (lead.assignedUserName) details += `Assigned User: ${lead.assignedUserName}\n`;
+  if (lead.description) details += `Description: ${lead.description}\n`;
+  if (lead.createdAt) details += `Created: ${formatDateTime(lead.createdAt)}\n`;
+  if (lead.modifiedAt) details += `Modified: ${formatDateTime(lead.modifiedAt)}\n`;
+  
+  return details.trim();
+}
+
 export function formatContactDetails(contact: Contact): string {
   let details = `Contact Details:\n`;
   details += `Name: ${contact.firstName} ${contact.lastName}\n`;
