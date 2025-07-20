@@ -199,12 +199,11 @@ export class EspoCRMClient {
   async testConnection(): Promise<{ success: boolean; user?: any; version?: string }> {
     try {
       const userResponse = await this.client.get('App/user');
-      const appResponse = await this.client.get('App');
       
       return {
         success: true,
-        user: userResponse.data,
-        version: appResponse.data.version
+        user: userResponse.data.user,
+        version: userResponse.data.settings?.version || 'Unknown'
       };
     } catch (error: any) {
       logger.error('Connection test failed', { error: error.message });
