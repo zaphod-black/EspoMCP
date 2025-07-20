@@ -1,13 +1,15 @@
 # EspoCRM MCP Server
 
-A comprehensive Model Context Protocol (MCP) server for seamless integration with EspoCRM. This server enables AI assistants to interact with your EspoCRM instance through a standardized interface, providing complete CRUD operations for Contacts, Accounts, Opportunities, Meetings, Users, and advanced system management capabilities.
+A comprehensive Model Context Protocol (MCP) server for seamless integration with EspoCRM. This server enables AI assistants to interact with your EspoCRM instance through a standardized interface, providing complete CRUD operations for Contacts, Accounts, Opportunities, Meetings, Users, Tasks, Leads, and advanced system management capabilities.
 
 ## Features
 
 ### Core Capabilities
 - **Complete CRUD Operations** - Create, read, update, and delete entities
-- **Multi-Entity Support** - Contacts, Accounts, Opportunities, Meetings, and Users
+- **Multi-Entity Support** - Contacts, Accounts, Opportunities, Meetings, Users, Tasks, and Leads
 - **Advanced Search & Filtering** - Flexible search with date ranges, pagination, and complex filters
+- **Task Management** - Complete task lifecycle with parent relationships and user assignment
+- **Lead Management** - Full lead pipeline from creation to conversion
 - **Meeting Management** - Full calendar integration with attendee management
 - **User Management** - Comprehensive user search and lookup capabilities
 - **Real-time Validation** - Zod-based schema validation for all operations
@@ -104,7 +106,7 @@ LOG_LEVEL=info
 
 ## Available Tools
 
-The MCP server provides 17 comprehensive tools for EspoCRM integration:
+The MCP server provides 27 comprehensive tools for EspoCRM integration:
 
 ### Contact Management
 - **`create_contact`** - Create new contacts with full field support
@@ -128,6 +130,20 @@ The MCP server provides 17 comprehensive tools for EspoCRM integration:
 ### User Management
 - **`search_users`** - Search users by username, email, name, type, and status
 - **`get_user_by_email`** - Direct email-based user lookup for calendar sync operations
+
+### Task Management
+- **`create_task`** - Create tasks with parent entity support (Lead, Account, Contact, Opportunity)
+- **`search_tasks`** - Search tasks by assignee, status, priority, parent entity, and due dates
+- **`get_task`** - Retrieve detailed task information including relationships
+- **`update_task`** - Update task properties including status, priority, and due date
+- **`assign_task`** - Assign or reassign tasks to specific users
+
+### Lead Management
+- **`create_lead`** - Create new leads with full field support and validation
+- **`search_leads`** - Search leads by status, source, assignee, and date ranges
+- **`update_lead`** - Update lead properties and status
+- **`convert_lead`** - Convert leads to contacts, accounts, and/or opportunities
+- **`assign_lead`** - Assign or reassign leads to specific users
 
 ### System Tools
 - **`health_check`** - Verify server and EspoCRM connectivity across all entities
@@ -154,6 +170,72 @@ All search tools now support advanced filtering options:
 - **`type`** - Filter by user type (admin, regular, portal, api)
 
 ## Usage Examples
+
+### Task Management
+
+```javascript
+// Create a task assigned to a user with parent relationship
+await client.callTool('create_task', {
+  name: 'Follow up on lead discussion',
+  assignedUserId: 'user123',
+  parentType: 'Lead',
+  parentId: 'lead456',
+  priority: 'High',
+  status: 'Not Started',
+  dateEnd: '2025-08-15',
+  description: 'Contact lead about pricing questions'
+});
+
+// Search tasks by assignee and status
+await client.callTool('search_tasks', {
+  assignedUserId: 'user123',
+  status: 'Started',
+  priority: 'High',
+  dueDateFrom: '2025-08-01',
+  dueDateTo: '2025-08-31'
+});
+
+// Assign task to different user
+await client.callTool('assign_task', {
+  taskId: 'task789',
+  assignedUserId: 'user456'
+});
+```
+
+### Lead Management
+
+```javascript
+// Create a new lead
+await client.callTool('create_lead', {
+  firstName: 'John',
+  lastName: 'Smith',
+  emailAddress: 'john.smith@example.com',
+  accountName: 'Smith Industries',
+  source: 'Web Site',
+  status: 'New',
+  assignedUserId: 'user123',
+  description: 'Interested in enterprise solution'
+});
+
+// Search leads by status and source
+await client.callTool('search_leads', {
+  status: 'In Process',
+  source: 'Web Site',
+  assignedUserName: 'Sales Rep',
+  createdFrom: '2025-08-01',
+  limit: 20
+});
+
+// Convert lead to contact and account
+await client.callTool('convert_lead', {
+  leadId: 'lead123',
+  createContact: true,
+  createAccount: true,
+  createOpportunity: true,
+  opportunityName: 'Smith Industries - Enterprise Deal',
+  opportunityAmount: 50000
+});
+```
 
 ### Meeting Management
 
@@ -493,6 +575,37 @@ All tools use Zod schemas for validation. Key schemas include:
 }
 ```
 
+#### Task Schema
+```typescript
+{
+  name: string,
+  assignedUserId?: string,
+  parentType?: 'Lead' | 'Account' | 'Contact' | 'Opportunity',
+  parentId?: string,
+  status?: 'Not Started' | 'Started' | 'Completed' | 'Canceled' | 'Deferred',
+  priority?: 'Low' | 'Normal' | 'High' | 'Urgent',
+  dateEnd?: string,         // Due date in YYYY-MM-DD format
+  description?: string
+}
+```
+
+#### Lead Schema
+```typescript
+{
+  firstName: string,
+  lastName: string,
+  emailAddress?: string,
+  phoneNumber?: string,
+  accountName?: string,     // Company name
+  website?: string,
+  status?: 'New' | 'Assigned' | 'In Process' | 'Converted' | 'Recycled' | 'Dead',
+  source: 'Call' | 'Email' | 'Existing Customer' | 'Partner' | 'Public Relations' | 'Web Site' | 'Campaign' | 'Other',
+  industry?: string,
+  assignedUserId?: string,
+  description?: string
+}
+```
+
 #### Search Parameters
 ```typescript
 {
@@ -614,6 +727,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **MCP Specification**: [Model Context Protocol Documentation](https://spec.modelcontextprotocol.io/)
 
 ## Changelog
+
+### Version 1.3.0 - Phase 1 Expansion
+- **Task Management**: Complete task lifecycle with 5 new tools (create, search, get, update, assign)
+- **Lead Management**: Full lead pipeline with 5 new tools (create, search, update, convert, assign)
+- **Parent Relationships**: Tasks can be linked to Leads, Accounts, Contacts, or Opportunities
+- **Lead Conversion**: Convert leads to contacts, accounts, and opportunities in one operation
+- **Advanced Task Features**: Priority levels, due dates, status tracking, and user assignment
+- **Expanded Search**: Task and lead search with comprehensive filtering options
+- **Type Safety**: Enhanced TypeScript interfaces for all new entities
+- **Tool Count**: Expanded from 17 to 27 comprehensive tools
 
 ### Version 1.2.0
 - **Enhanced Meeting Management**: Complete CRUD operations for meetings
